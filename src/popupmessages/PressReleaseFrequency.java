@@ -1,31 +1,17 @@
 package popupmessages;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
-import javax.swing.border.EmptyBorder;
-import javax.swing.text.AttributeSet;
-import javax.swing.text.SimpleAttributeSet;
-import javax.swing.text.StyleConstants;
-import javax.swing.text.StyleContext;
-
-import helpers.IFrequency;
 import main.news.AnalyzeNews;
-
-import javax.swing.JLabel;
 import java.awt.event.ActionListener;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.awt.event.ActionEvent;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
@@ -85,12 +71,10 @@ public class PressReleaseFrequency extends JDialog {
 		setVisible(true);
 	}
 
-	
 	public Map<String, Integer> wordFrequency(String xlo) {
 		Map<String, Integer> myMap = new HashMap<String, Integer>();
 
 		String words = xlo;
-
 		String lowerCase = words.toLowerCase();
 		String alphaOnly = lowerCase.replaceAll("\\W", " "); // Replaces all
 																// special
@@ -113,7 +97,7 @@ public class PressReleaseFrequency extends JDialog {
 		TableRowSorter sorter = new TableRowSorter(twitterFrequencyModel);
 		twitterFrequencyTable.setRowSorter(sorter);
 		sorter.setSortsOnUpdates(true);
-		
+
 		return myMap;
 	}
 

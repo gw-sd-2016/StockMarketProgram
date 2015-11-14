@@ -3,7 +3,6 @@ package popupmessages;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
-
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
@@ -11,28 +10,17 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JLabel;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
-import java.awt.Insets;
-import javax.swing.SpringLayout;
 import java.awt.GridLayout;
 
 public class CheckInternet extends JDialog {
 
 	private final JPanel contentPanel = new JPanel();
 
-
-
-	/**
-	 * Create the dialog.
-	 */
 	public CheckInternet() {
-		
+
 		setBounds(100, 100, 427, 145);
-		int x = (Toolkit.getDefaultToolkit().getScreenSize().width / 2)
-				- this.getWidth() / 2;
-		int y = (Toolkit.getDefaultToolkit().getScreenSize().height / 2)
-				- this.getHeight() / 2;
+		int x = (Toolkit.getDefaultToolkit().getScreenSize().width / 2) - this.getWidth() / 2;
+		int y = (Toolkit.getDefaultToolkit().getScreenSize().height / 2) - this.getHeight() / 2;
 		setLocation(x, y);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -58,7 +46,7 @@ public class CheckInternet extends JDialog {
 				JButton okButton = new JButton("OK");
 				okButton.addActionListener(new ActionListener() {
 					public void actionPerformed(ActionEvent arg0) {
-						if(arg0.getActionCommand() == "OK"){
+						if (arg0.getActionCommand() == "OK") {
 							dispose();
 						}
 					}
@@ -70,5 +58,4 @@ public class CheckInternet extends JDialog {
 		}
 		setVisible(true);
 	}
-
 }
