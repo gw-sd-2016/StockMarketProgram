@@ -27,7 +27,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JFrame;
@@ -42,7 +41,6 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.EmptyBorder;
-
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
@@ -74,7 +72,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-
 import helpers.IStringHelper;
 import main.menu.AboutMenu;
 import main.news.AnalyzeNews;
@@ -555,10 +552,10 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		lblDayRange.setText("Day Range: " + removeQuotes(inputLine[0]));
 		lblCompanyName.setText("Name: " + removeQuotes(inputLine[1]));
 		lblExchange.setText("Exchange: " + removeQuotes(inputLine[2]));
-		
+
 		double dailyAmount = Double.parseDouble(removeQuotes(inputLine[3]));
 		DecimalFormat format = new DecimalFormat("#,###");
-		
+
 		lblAvgDailyVolume.setText("Avg. Daily Volume: " + removeQuotes(format.format(dailyAmount)));
 
 	}
