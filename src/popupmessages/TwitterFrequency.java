@@ -148,13 +148,13 @@ public class TwitterFrequency extends JDialog {
 		setVisible(true);
 	}
 
+	
+	//this is a start. need to fix
 	private CategoryDataset createDataset1() {
-		// row keys...
 		final String series1 = "First";
 		final String series2 = "Second";
 		final String series3 = "Third";
 
-		// column keys...
 		final String category1 = "Category 1";
 		final String category2 = "Category 2";
 		final String category3 = "Category 3";
@@ -164,7 +164,7 @@ public class TwitterFrequency extends JDialog {
 		final String category7 = "Category 7";
 		final String category8 = "Category 8";
 
-		// create the dataset...
+		
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
 		dataset.addValue(1.0, series1, category1);
