@@ -1,0 +1,5 @@
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. introduced today the HMC1127 and the HMC1126 MMIC        (Monolithic Microwave Integrated Circuit) distributed power amplifiers.        Covering the frequency range of 2-50 GHz, these new power amplifier die        simplify system design and improve performance by eliminating the need        for RF switches between frequency bands. Each amplifier incorporates        I/Os that are internally matched to 50 Ohms, facilitating easy        integration into multi-chip modules. All data is taken with the chips        connected via two 0.02-mm (1 mil) wire bonds measuring 0.31-mm (12 mils)        in length. Based on a GaAs (gallium-arsenide) pHEMT (pseudomorphic        high-electron mobility transistor) design, the HMC1126 and HMC1127 are        ideal for instrumentation, microwave radio and VSAT antennas, aerospace        and defense systems, telecommunications infrastructure, and fiber optic        applications.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150714005131/en/
+Download data sheet, order samples and evaluation boards

@@ -1,0 +1,24 @@
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. today introduced a quad-channel protector and two        multiplexers offering +/-55-V overvoltage protection (OVP) for precision        converters, amplifiers and other components that operate from a low        voltage of 4.5 V up to 36 V. The ADG5462F quad channel protector, ADG5248F 8:1 multiplexer and ADG5249F differential 4:1 multiplexer offer +/-55-V OVP in power-on and power-off        stages and provide robust, precision protection against hot-swapping and        operator miss-use events, thereby protecting downstream analog        components. By providing on-chip fault diagnostics, the new devices are        the first in the industry to detect and avoid defective channels, which        simplifies fault detection algorithms and improves system uptime. The        new products maximize design flexibility by enabling users to define        fault-trigger levels independent of primary supplies. By also removing        the need for multiple discrete protection components, the ADG5462F,        ADG5248F and ADG5249F optimize PCB area and simplify the design process.        The devices are optimized for precision instrumentation, process control        and avionics applications.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150709005754/en/
+View ADG5462F product page, pricing and availability; download data          sheet; order samples and evaluation boards: http://www.analog.com/adg5462f.html
+View ADG5248F and ADG5249F product page, pricing and availability;          download data sheet; order samples and evaluation boards: http://www.analog.com/adg5248f.html
+Learn about ADI’s fault protected, switches and muxes product          portfolio: http://www.analog.com/en/products/switches-multiplexers.html#fault-protected-switches-multiplexers
+Connect with engineers and ADI product experts on EngineerZone®, an          online technical support community: https://ez.analog.com/community/switches_multiplexers
+Click to Tweet: http://ctt.ec/5zHeo
+The ADG5248F 8:1 multiplexer and ADG5249F differential 4:1 multiplexer maximize throughput for small signal        measurement such as thermocouples or resistance temperature detectors        (RTDs) by offering best-in-class, low-fault leakage of 70 nA, which is        10 times lower than competing solutions, and on-leakage of 20 nA. These        levels ensure that the user can take accurate measurements when other        multiplexer I/O channels are in an over-voltage fault condition.
+Key Features:
+Over-voltage detection on source pins
+Minimum secondary supply level: 4.5-V single-supply
+Over-voltage protection up to +/?55 V
+4-kV HBM (human body model) ESD (ADG5462F)
+VSS to VDD analog signal range
++/-5-V to +/-22-V dual-supply operation
+8-V to 44-V single-supply operation
+Fully specified at +/-15 V, +/-20 V, +12 V, and +36 V
+Operating Temperature Range ?40°C to +125°
+ADG5462F: Ultra-low on-resistance of 10 ohm and on-resistance        flatness of 0.5 ohm minimizes system total harmonic distortion and        enhances noise performance.
+ADG5248F/49F: Ultra-low charge injection of 0.8 pC and        on-capacitance of 19 pF enables higher accuracy, faster channel        switching in multiplexed systems.
+Family Optimized for Low RON
+Product

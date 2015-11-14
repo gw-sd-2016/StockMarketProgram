@@ -1,0 +1,34 @@
+Akamai to Gather Business and Technology Leaders at Its Eighth Annual Edge Conference
+Akamai Technologies, Inc. September 30, 2015 6:30 AM
+?
+Done
+CAMBRIDGE, Mass., Sept. 30, 2015 /PRNewswire/ --
+Presenters to include industry thought leaders and business innovators such as Latha Maripuri, SVP & Global CISO of News Corp ; Andi Gall, CTO of Red Bull Media House ; Guru Sankararaman, VP of IT at Tesla Motors ; Paul Milkman, SVP and CIO, TD Bank ; Nadia Shouraboura, CEO, Hointer ; and Micael Dahlén , professor and internationally acclaimed author and speaker
+Registration for Akamai customer conference available at www.akamai.com/edge
+Akamai Technologies, Inc. ( AKAM ), the global leader in content delivery network (CDN) services, today announced the scheduled agenda and featured speakers for Akamai Edge 2015 , its eighth annual customer conference, taking place October 19-23, 2015 at the Fontainebleau Miami Beach .
+View photo
+.
+Attracting business and technology leaders from some of the world's largest online brands, Akamai Edge 2015 creates a forum for sharing technology best practices and innovation stories through industry panels, technical labs, and partner-based exhibits.  This year's agenda features speakers from AppRiver, Big Fish Games, Buzzfeed, Carsales.com.au, Cisco, Concur, Crate & Barrel, Crocs, eBay, Electronic Arts, Gilt Groupe, HTC Corporation, HubSpot, IKEA, InforGlobal, JetBlue, Marriott, MindBody, NBC Sports, New Balance, Norwegian Cruise Line, Panera, PayPal, Rakuten, Red Hat, Reebok, Rue La La, Sephora, Turner Broadcasting, Ulta, Wuaki TV, and Xbox among others.
+In addition, attendees will hear from Akamai CEO and Co-Founder Dr. Tom Leighton, who will discuss the innovation and progress being made on technologies that will impact the future of the Internet (see Dr. Leighton's 2014 Edge keynote ). 
+Attendees will have the chance to connect and gain insight into the Akamai partner ecosystem through hands-on demonstrations by more than 30 technical and strategic partners whose solutions integrate with the Akamai Intelligent Platform.  Participating sponsors and Akamai partners include Aspera, IBM, Arturai, AT&T, Brightcove, G&L, Microsoft Azure, thePlatform, Dynatrace, Exceda, Flexera Software, Frankly, Jive, Kaltura, and Orange Business Services, among others.
+"The goal of our Edge Conference is to spark dialogue, share best practices, and foster new ideas among the business leaders, innovators, and visionaries that are shaping the Internet's future," said Brad Rinklin, chief marketing officer, Akamai.  "This year's event will delve deep into the technologies and strategies critical for businesses to navigate today's hyperconnected world.  Topics will range from delivering online video with quality, scale and affordability, to providing near-instant web and mobile experiences on any device, to securing the cloud.  Working in close collaboration with our customers and partners, we believe this year's conference will be our largest and most comprehensive to date."
+As the largest annual gathering of Akamai customers and partners, the conference is scheduled to address topics including:
+Going Mobile: How to Deliver Exceptional Omni-channel Experiences
+Taking a Proactive Defense with a Managed Web Security Service 
+4K & MPEG-DASH: Latest Trends in Media
+Internet of Things (IoT) 
+HTTP/2 and Transport Layer Security (TLS) Evolution 
+Responsive Web Design: A Road Map to Success from Planning to Deployment 
+Going Direct: What Are the Economics of Going Over-the-Top (OTT)
+Security and Performance: Breaking the Conundrum
+The Power and Peril of Live: Delivering Quality When the World is Watching
+Innovations in Media Workflow 
+Application Security Multi-layer Defense
+Delivering & Accelerating Website and Application Delivery in China 
+Current registrations for Akamai Edge 2015 include customers and partners from 37 countries spanning five continents.  The complete conference agenda is available at: http://www.akamai.com/html/custconf/agenda.html
+Akamai Edge 2015 kicks off with two days of Akamai University sessions, designed for IT professionals who want to "step behind the curtain" and deepen their knowledge and Akamai expertise.  These two days of technical training are led by Akamai technical consultants and professional services team members.
+Prior attendees at Akamai's Edge conferences have included CEOs, CIOs, eCommerce executives, CTOs, heads of New Media, technical architects, and technology and business strategy executives.
+For a complete list of registration rates, a description of eligible attendees and conference pass options, please visit Edge Registration .
+About Akamai®
+As the global leader in Content Delivery Network ( CDN ) services, Akamai makes the Internet fast, reliable and secure for its customers. The company's advanced web performance, mobile performance, cloud security and media delivery solutions are revolutionizing how businesses optimize consumer, enterprise and entertainment experiences for any device, anywhere. To learn how Akamai solutions and its team of Internet experts are helping businesses move faster forward, please visit www.akamai.com or blogs.akamai.com , and follow @Akamai on Twitter .
+ 

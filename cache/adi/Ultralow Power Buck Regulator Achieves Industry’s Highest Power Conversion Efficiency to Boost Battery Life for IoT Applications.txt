@@ -1,0 +1,17 @@
+Ultralow Power Buck Regulator Achieves Industry’s Highest Power Conversion Efficiency to Boost Battery Life for IoT Applications
+Analog Devices, Inc. August 24, 2015 8:00 AM
+?
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. today introduced an ultralow power buck regulator that        extends battery life in portable devices by achieving the industry’s        highest ultra-light-load power conversion efficiency. With a 90 percent        efficiency rating and consuming only 180-nA quiescent current, the        ADP5301 buck regulator is designed to deliver maximum power for a longer        period of time than previously achievable and is ideally suited for        Internet of Things (IoT) applications, including wireless sensor        networks and wearable devices such as fitness bands and smartwatches.        The new device is housed in a tiny WLCSP package that measures less than        3.1-mm², which makes it suitable for small form factors.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150824005001/en/
+View ADP5301 product page, download data sheet, order samples and          evaluation boards: http://www.analog.com/adp5301.html
+Learn about ADI’s power management product portfolio: http://www.analog.com/en/products/power-management
+Connect with engineers and ADI product experts on EngineerZone®, an          online technical support community: https://ez.analog.com/community/power
+Click to Tweet: http://ctt.ec/3ecPO
+ADP5301 Ultralow Power Buck Regulator Key Features:
+90 percent power conversion efficiency in ultralight load with 180-nA          quiescent current boosts battery life
+6.5-V to 2.05-V input voltage range enables wide range of battery          sources or architectures
+Selectable, low-noise forced PWM mode with low output voltage ripple          powers noise-sensitive analog load up to 500-mA output current          capability
+Integrated voltage supervisory function increases overall system          reliability
+ 

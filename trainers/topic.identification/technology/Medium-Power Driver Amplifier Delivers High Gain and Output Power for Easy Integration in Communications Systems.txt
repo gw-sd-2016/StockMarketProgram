@@ -1,0 +1,13 @@
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. today introduced a medium-power, distributed driver        amplifier which operates between 24 and 35 GHz. The HMC1131 amplifier        provides 22-dB of gain, +35-dBm output IP3, and +24 dBm of output power        at 1-dB gain compression. The new amplifier reduces the number of        components required to achieve the desired output power and small signal        gain, which lowers development costs and design time by enabling simpler        transmit line-ups and higher integration. Based on a GaAs        (gallium-arsenide) pHEMT (pseudomorphic high-electron mobility        transistor) design, the HMC1131 is ideal for civil and defense        communications systems, including point-to-point and        point-to-multi-point radios and VSAT and SATCOM applications. The        HMC1131 is capable of supplying +25 dBm of saturated output power with        16 percent PAE and is housed in a compact, leadless 4x4 mm ceramic        surface-mount package.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150902005003/en/
+View product page, download data sheet, order samples and evaluation          boards: http://www.analog.com/HMC1131
+Connect with engineers and ADI product experts on EngineerZone®, an          online technical support community: https://ez.analog.com/community/rf
+HMC1131 Distributed Driver Amplifier Key Features
+High Output IP3: 35 dBm
+High Gain: 22 dB
+High P1dB Output Power: 24 dBm
+DC Supply: +5V @ 225 mA
+Compact 24-lead SMT Package: 16 mm²
+ 

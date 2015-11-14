@@ -1,0 +1,20 @@
+Connect with engineers and experts on EngineerZone®, an online          technical support community: https://ez.analog.com/community/data_converters/precision_adcs
+Click to Tweet: http://ctt.ec/FRy4S
+The AD7124-4 and AD7124-8 incorporate a fully integrated signal chain        with a 24-bit sigma-delta A/D converter, programmable gain amplifier        (PGA), precision reference, reference buffers, current sources,        temperature sensor and excitation sources on a single chip. Integrated        diagnostic features support SIL compatibility and reduce the need for        discrete diagnostic components saving valuable PCB area.
+The AD7124-4 and AD7124-8 offer three user-selectable power modes that        allow system designers to optimize throughput rate versus required noise        performance. In the lowest power mode (255 µA) the converter delivers        21.7 noise free bits at low sampling rates. The user-selectable power        modes allow designers of programmable-logic controllers, process        controllers, transmission systems and other industrial and        instrumentation equipment to develop a single platform by precisely        matching power/performance requirements for each use case.
+AD7124-4/AD7124-8 Features
+255 µA typ (24 nV rms at 1.17 Hz) in Low Power Mode
+355 µA typ (20 nV rms at 2.34 Hz) in Mid Power Mode
+930 µA typ (23 nV rms at 9.4 Hz) in Full Power Mode
+Output data rate:
+9.38 sps to 19,200 sps (Full Power Mode)
+2.34 sps to 4,800 sps (Mid Power Mode)
+1.17 sps to 2,400 sps (Low Power Mode)
+Rail to Rail Analog Inputs for gains
+10 ppm/°C integrated 2.5 V buffered reference (AD7124-4)
+Flexible & per channel programmable digital filters
+Enhanced filters for simultaneous 50 Hz and 60 Hz rejection
+On-chip diagnostics
+?40°C to +105°Operating Temperature Range
+Pricing, Availability and Complementary Components
+ 
