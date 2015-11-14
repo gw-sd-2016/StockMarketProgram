@@ -1,0 +1,19 @@
+Analog Devices Clock Jitter Attenuator Optimizes JESD204B Serial Interface Functionality in Base Station Designs
+Analog Devices September 8, 2015 8:00 AM
+?
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. today introduced a high-performance clock jitter        attenuator designed to support the JESD204B serial interface standard        for connecting high-speed data converters and field-programmable gate        arrays (FPGAs) operating in base station designs. The JESD204B interface        was specifically developed to address high-data rate system design        needs, and the 3.2-GHz HMC7044 clock jitter attenuator contains        functions that support and enhance the unique capabilities of that        interface standard. The HMC7044 delivers 50-fs jitter performance, which        improves the signal-to-noise ratio and dynamic range of high-speed data        converters, and the device provides 14 low-noise and configurable        outputs that provide flexibility in interfacing with many different        components. The HMC7044 also offers a wide range of clock management and        distribution features that make it possible for designers of base        stations to build an entire clock design with a single device.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150908005222/en/
+View product page, download data sheet, order samples and evaluation          boards: http://www.analog.com/HMC7044
+Connect with engineers and ADI product experts on EngineerZone®, an          online technical support community: https://ez.analog.com/community/rf
+In base stations applications there are many serial JESD204B data        converter channels that require their data frames to be aligned with an        FPGA. The HMC7044 clock jitter attenuator simplifies JESD204B system        design by generating source-synchronous and adjustable sample and frame        alignment (SYSREF) clocks in a data converter system. The device        features two phase-locked loops (PLLs) and overlapping, on-chip,        voltage-controlled oscillators (VCOs). The first PLL locks a low-noise,        local voltage-controlled clock oscillator (VCXO) to a relative noisy        reference, while the second PLL multiplies the VCXO signal up to the VCO        frequency with exceptionally little added noise. For cellular        infrastructure JESD204B clock generation, wireless infrastructure, data        converter clocking, microwave baseband cards and other high-speed        communications applications, the architecture of the HMC7044 offers        excellent frequency generation performance with low phase noise and        integrated jitter.
+HMC7044 Clock Jitter Attenuator Key Features
+JEDEC JESD204B support
+Ultra-low RMS jitter: 50 fs (12 KHz to 20 MHz, typical)
+Noise floor: -162 dBc/Hz at 245.76 MHz
+Low phase noise: < -142 dBc/Hz at 800 kHz to 983.04 MHz output          frequency
+Up to 14 device differential device clocks from PLL2
+External VCO input supports up to 5 GHz
+On-board regulators for excellent PSRR
+Pricing and Availability

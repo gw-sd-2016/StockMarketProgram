@@ -1,0 +1,6 @@
+Done
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog        Devices, Inc. today introduced the first in a new series of        high-voltage, low-noise, zero-drift, precision operational amplifiers        that reduce system noise, cost, board space, and development time by        providing on-chip electro-magnetic interference (EMI) filtering and        eliminating the need for calibration circuitry. The dual-channel        ADA4522-2 op amp operates within a supply voltage range of 4.5 V to 55 V        and exhibits noise performance that is at least 35 percent better than        its closest competitor. The new device provides the ease-of-use of a        precision op amp with the ultra-low offset and drift of a zero-drift op        amp. The ADA4522-2 is suitable for a wide range of applications,        including current sensing in electronic loads, power supplies and motor        control and offset correction in composite amplifiers used in        instrumentation and other applications.
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150820005508/en/
+View ADA4522-2 product page, download data sheet, order samples and          evaluation boards: http://www.analog.com/ada4522-2.html
+Learn about ADI’s zero-drift amp portfolio:

@@ -1,0 +1,26 @@
+Akamai Releases Findings of Increased Attacks and More Aggressive Tactics from DD4BC Extortionist Group
+Akamai Technologies, Inc. September 9, 2015 6:30 AM
+?
+Content preferences
+Done
+CAMBRIDGE, Mass., Sept. 9, 2015 /PRNewswire/ -- Akamai Technologies, Inc. ( AKAM ), the global leader in content delivery network (CDN) services, published today, through the company's Prolexic Security Engineering & Research Team (PLXsert), a new cybersecurity case study. Akamai shared details of an increase in distributed denial of service (DDoS) attacks from the Bitcoin extortionist group DD4BC, based on PLXsert's observation of attack traffic targeted at customers from September 2014 through August 2015. Since April 2015, the team identified 114 DD4BC attacks, including more aggressive measures that target brand reputation through social media. The full report is available for download here: www.stateoftheinternet.com/dd4bc-case .
+View photo
+.
+"DD4BC has been using the threat of DDoS attacks to secure Bitcoin payments from its victims for protection against future attacks," said Stuart Scholly, Senior Vice President & General Manager, Security Division at Akamai. "The latest attacks – focused primarily on the financial service industry – involved new strategies and tactics intended to harass, extort and ultimately embarrass the victim publically."
+What is the DD4BC Group, and How Does it Operate?
+The DD4BC group has been responsible for a large number of Bitcoin extortion campaigns dating back to 2014. In the past year, the group expanded its extortion and DDoS campaigns to target a wider array of business sectors – including financial services, media and entertainment, online gaming and retailers. The group has used e-mail to inform its target that a low-level DDoS attack will be launched against the victim's website. From June through July 2015, the attacks increased from low-level to more than 20 Gbps in some cases. The group would then demand a Bitcoin ransom to protect the company from a larger DDoS attack designed to make its website inaccessible.
+PLXsert released a history of the group's activities that can be found in Akamai's Security Bulletin: DD4BC Operation Profile , published in April 2015.
+DD4BC Using Social Media to Exploit Organizations
+According to research from PLXsert, DD4BC recently threatened to expose targeted organizations via social media, adding to the damage caused by the DDoS attack itself. The goal apparently is to garner more attention for the group's ability to create service disruptions by publicly embarrassing the target and tarnishing the company's reputation through these wide-reaching channels.
+The group's methodology typically includes use of multi-vector DDoS attack campaigns, revisiting former targets and also incorporating Layer 7 DDoS in multi-vector attacks, specifically concentrating on the WordPress pingback vulnerability. This vulnerability is exploited to repeatedly send reflected GET requests to the target to overload the website. Akamai researchers have seen this attack method incorporated into DDoS booter suite frameworks.
+Threat Mitigation
+Since September 2014, the Akamai PLXsert has observed a total of 141 confirmed DD4BC attacks against Akamai customers. Of those attacks, the average bandwidth was 13.34 Gbps, with the largest DDoS attack reported at 56.2 Gbps.
+To help protect against extortionist group DD4BC, and subsequent DDoS attacks, Akamai recommends the following defensive measures:
+Deploy anomaly- and signature-based DDoS detection methods to identify attacks before a website becomes unavailable to users.
+Distribute resources to increase resiliency and avoid single points of failure due to an attack.
+Implement Layer 7 DDoS mitigation appliances on the network in strategic locations to reduce the threat for critical application servers.
+Akamai and PLXsert will continue to monitor ongoing threats, campaigns and methodologies used by DD4BC. To learn more about the group and its specific threats and mitigation techniques, please download a complimentary copy of the threat advisory at www.stateoftheinternet.com .
+About Akamai
+As the global leader in Content Delivery Network ( CDN ) services, Akamai makes the Internet fast, reliable and secure for its customers. The company's advanced web performance, mobile performance, cloud security and media delivery solutions are revolutionizing how businesses optimize consumer, enterprise and entertainment experiences for any device, anywhere. To learn how Akamai solutions and its team of Internet experts are helping businesses move faster forward, please visit www.akamai.com or blogs.akamai.com , and follow @Akamai on Twitter .
+Note: All product and company names are trademarks of their respective organizations.
+Contacts:

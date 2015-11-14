@@ -1,0 +1,19 @@
+Analog Devices’ RF Design Tools Now Support Hittite Microwave Products
+Analog Devices July 29, 2015 8:00 AM
+?
+Analog Devices' RF Design Tools Now Support Hittite Microwave Products (Graphic: Business Wire)  Multimedia …
+NORWOOD, Mass.--(BUSINESS WIRE)--
+Analog       Devices, Inc. (ADI) today announced new releases of its popular RF       design tools, which now provide support for Hittite Microwave       Corporation products from ADI. The ADIsimRF™ design tool enables       engineers to model RF and microwave signal chains using devices from       across ADI’s RF IC portfolio. ADIsimRF Version 1.9 adds 190 mixers,       amplifiers, switches and attenuators, which are primarily from the       Hittite portfolio. The ADIsimPLL™ design tool is a comprehensive and       easy-to-use PLL (phased-locked loop) synthesizer design and simulation       tool. ADIsimPLL Version 4 has been upgraded to include device models for       the HMC703 and HMC704 PLLs and the HMC830 , HMC832 , ADF4355 , ADF4355-2 and ADF5355 integrated PLLs and VCOs (voltage-controlled oscillators).
+This Smart News Release features multimedia. View the full release here: http://www.businesswire.com/news/home/20150729005014/en/
+Download ADIsimRF design tool: http://www.analog.com/adisimrf
+Download ADIsimPLL development software: http://www.analog.com/adisimpll
+View ADI’s broad portfolio of RF ICs: http://www.analog.com/rf
+Browse ADI’s leading PLL products: http://www.analog.com/pll
+Click to Tweet: http://ctt.ec/RCmcA
+Analog Devices acquired Hittite in 2014 and now offers the broadest       portfolio of RF and microwave products covering the entire signal chain,       from antenna to bits and back, across the entire frequency spectrum       beyond 100 GHz. Complemented by the world’s leading data converters,       ADI’s RF, microwave and millimeter-wave portfolio includes more than       2,000 high-performance products, from functional blocks to       highly-integrated solutions, development platforms and modules.
+About Analog Devices
+Analog Devices ( ADI ) designs       and manufactures semiconductor products and solutions. We enable our       customers to interpret the world around us by intelligently bridging the       physical and digital with unmatched technologies that sense, measure and       connect. Visit http://www.analog.com
+Follow ADI on Twitter at http://www.twitter.com/ADI_News
+Subscribe to Analog Dialogue, ADI’s monthly technical journal,       at: http://www.analog.com/library/analogDialogue/
+ADIsimRF and ADIsimPLL are trademarks of Analog Devices, Inc.
+View source version on businesswire.com: http://www.businesswire.com/news/home/20150729005014/en/

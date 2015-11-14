@@ -1,0 +1,23 @@
+Compare Brokers
+Akamai Content Security Meets Farncombe's Standards for Secure OTT Delivery of Premium Video
+Rigorous assessment confirms Akamai's suite of media delivery solutions meets content providers' high security standards for OTT distribution of premium video content
+Akamai Technologies October 19, 2015 5:30 AM
+?
+Content preferences
+Done
+CAMBRIDGE, Mass., Oct. 19, 2015 /PRNewswire/ -- Akamai Technologies ( AKAM ), the global leader in content delivery network (CDN) services, today announced that its media delivery solutions for over-the-top (OTT) video have successfully completed a rigorous audit by Farncombe, a Cartesian ( CRTN ) company and the recognized leader in security benchmarking for premium Hollywood content. Farncombe's independent validation affirms that select Akamai media content security technologies, including its critical encryption function, meet the auditor's stringent standards for the secure delivery of premium video content.
+View photo
+.
+"Whether you are a service provider, studio or rights owner, OTT delivery of premium video content is likely to be a key cornerstone of your business," said Andre Roy, Head of Security Practice, Farncombe. "We believe in validating security solutions to the highest industry standards to give everyone in the OTT video supply chain confidence that content is delivered securely."
+Farncombe recently subjected the following Akamai secure delivery solutions to an intensive security assessment:
+Media encryption – encrypts online content from Akamai's edge server to the player runtime.
+Token authorization – authorizes the end user and prevents online link sharing and media player hijacking.
+Content targeting – enforces that content is delivered from the Akamai edge server to IP addresses in specific geographic regions.
+The process consisted of interviews with media security experts, on-premise visits, and exhaustive inspections of relevant software documentation, source code and live web applications. Akamai's suite of media security capabilities also supports third-party digital rights management (DRM) including Adobe Access, Apple's FairPlay Streaming and Microsoft PlayReady through its cloud-based Media Services.
+"Independent validation of our solution's security brings significant assurance to Akamai customers who need to meet major motion picture studio security requirements in order to deliver licensed video content," said John Bishop, CTO, Media, Akamai. "Completing a rigorous audit by Farncombe, which is recognized by the major studios for its content security and testing services, helps assure OTT providers that they are working with a set of tools that meet incredibly strict standards to protect the value of their content offerings."
+Akamai Media Services offer a secure, high-quality online media solution that includes one-stop content preparation, packaging for multiple online platforms and content protection technologies. Available for both live and on-demand media workflows, and complemented by Akamai NetStorage, Media Services integrate with Akamai's Media Delivery Solutions for superior quality online viewing experiences.
+About Akamai
+As the global leader in Content Delivery Network ( CDN ) services, Akamai makes the Internet fast, reliable and secure for its customers. The company's advanced web performance, mobile performance, cloud security and media delivery solutions are revolutionizing how businesses optimize consumer, enterprise and entertainment experiences for any device, anywhere. To learn how Akamai solutions and its team of Internet experts are helping businesses move faster forward, please visit www.akamai.com or blogs.akamai.com , and follow @Akamai on Twitter .
+About Farncombe
+Farncombe supports clients worldwide, and is recognised as an innovator driving the industry forward and as the go-to source for independent and authoritative strategic counsel. Farncombe is a wholly owned subsidiary of Cartesian Inc. ( CRTN ), a specialist provider of consulting services and managed solutions to the communications, technology and digital media industries. Farncombe's client roster includes: Arqiva, AirTies, Broadcom, Cisco, BSkyB, BT, Eutelsat, Liberty Global, Nagra, Ofcom, SABC, TalkTalk, Virgin Media and YouView. More information at www.farncombe.com .
+Contacts: 
