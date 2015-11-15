@@ -67,7 +67,7 @@ public class PressReleaseFrequency extends JDialog {
 				twitterFrequencyModel = (DefaultTableModel) twitterFrequencyTable.getModel();
 			}
 		}
-		wordFrequency(AnalyzeNews.allNewsList);
+		//wordFrequency(AnalyzeNews.allNewsList);
 		setVisible(true);
 	}
 

@@ -15,7 +15,6 @@ import com.aliasi.util.ScoredObject;
 public class Lingpipe {
 	private static int NGRAM = 3;
 	private static int MIN_COUNT = 5;
-	private static int MAX_NGRAM_REPORTING_LENGTH = 2;
 	private static int NGRAM_REPORTING_LENGTH = 2;
 	private static int MAX_COUNT = 100;
 	private static File BACKGROUND_DIR;
@@ -59,6 +58,7 @@ public class Lingpipe {
 			String text = Files.readFromFile(new File(directory, trainingFiles[j]), "ISO-8859-1");
 			model.handle(text);
 		}
+		
 		return model;
 	}
 
@@ -69,7 +69,7 @@ public class Lingpipe {
 			report_filterColl(score, toks);
 		}
 	}
-	
+
 	private static void reportForNewTerms(SortedSet<ScoredObject<String[]>> nGrams) {
 		for (ScoredObject<String[]> nGram : nGrams) {
 			double score = nGram.score();
@@ -89,7 +89,7 @@ public class Lingpipe {
 		training.put(score, accum);
 
 	}
-	
+
 	private static void report_filterNew(double score, String[] toks) {
 		String accum = "";
 		for (int j = 0; j < toks.length; ++j) {
@@ -97,7 +97,7 @@ public class Lingpipe {
 				return;
 			accum += " " + toks[j];
 		}
-		
+
 		newterms.put(score, accum);
 
 	}
