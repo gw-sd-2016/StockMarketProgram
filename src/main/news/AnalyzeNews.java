@@ -25,7 +25,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.Stack;
-import javax.swing.DefaultListModel;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
@@ -64,10 +65,13 @@ import analyzers.Lingpipe;
 import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import helpers.ButtonColumn;
 import helpers.IFrequency;
+import helpers.PieRenderer;
 import main.MainFrame;
 import popupmessages.CheckInternet;
 import popupmessages.PressReleaseFrequency;
+import popupmessages.ReadNewsContent;
 import popupmessages.TwitterFrequency;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -82,33 +86,31 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	private Set<String> stopWordList = new HashSet<String>();
 	private static DefaultTableModel headLineTableModel; // model for volume
 	public static String tweetString;
-	public static String allNewsList;
-	private DefaultListModel newsModel; // model for the jlist
-	private Map<String, String> newsStuff = new HashMap<String, String>();
+	private Map<String, String> newsHeadlineAndContent = new HashMap<String, String>();
 	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private ChartPanel pieChartPanel;
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
+	private JTextPane twitterTextArea;
+	private JScrollPane headlineScrollPane;
+	private JTable headLineTable;
+	private JButton prWordFrequency;
+	private JButton twtrWordFrequency;
+	private ChartPanel barChartPanel;
 
-	/**
-	 * Create the dialog.
-	 * 
-	 * @throws IOException
-	 */
 	public AnalyzeNews() throws IOException {
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 213, 0 };
-		gridBagLayout.rowHeights = new int[] { 0, 293, 0, 0, 293, 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 197, 229, 0, 0, 293, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 1.0, 1.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		getContentPane().setLayout(gridBagLayout);
 
 		headlineScrollPane = new JScrollPane();
 		GridBagConstraints gbc_headlineScrollPane = new GridBagConstraints();
-		gbc_headlineScrollPane.gridwidth = 2;
 		gbc_headlineScrollPane.insets = new Insets(0, 0, 5, 0);
 		gbc_headlineScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_headlineScrollPane.gridx = 1;
@@ -116,38 +118,41 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
 
 		headLineTable = new JTable();
+
 		headLineTable.setModel(new DefaultTableModel(new Object[][] {},
-				new String[] { "Number", "Headline", "Date", "Movement", "Days After Press Release" }) {
-			Class[] columnTypes = new Class[] { Integer.class, String.class, String.class, String.class,
+				new String[] { "Number", "Headline", "Date", "Movement", "Days After Press Release", "Content" }) {
+			Class[] columnTypes = new Class[] { String.class, Integer.class, String.class, String.class, String.class,
 					Integer.class };
 
 			public Class getColumnClass(int columnIndex) {
 				return columnTypes[columnIndex];
 			}
+
+			boolean[] columnEditables = new boolean[] { false, true, true, true, true, true };
+
+			public boolean isCellEditable(int row, int column) {
+				return columnEditables[column];
+			}
 		});
+		headLineTable.getColumnModel().getColumn(2).setPreferredWidth(225);
+		headLineTable.getColumnModel().getColumn(4).setPreferredWidth(224);
+		headLineTable.getColumnModel().getColumn(5).setPreferredWidth(204);
 
 		headLineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {
-				addPieChart(headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt");
+				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
+
+				addPieChart(fileTitle);
 				addBarChart();
+
 			}
 		});
 
 		DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
 		leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-
-		headLineTable.getColumnModel().getColumn(0).setCellRenderer(leftRenderer);
 		headLineTable.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
-		headLineTable.getColumnModel().getColumn(2).setCellRenderer(leftRenderer);
-		headLineTable.getColumnModel().getColumn(3).setCellRenderer(leftRenderer);
-		headLineTable.getColumnModel().getColumn(4).setCellRenderer(leftRenderer);
-		headLineTable.getColumnModel().getColumn(1).setPreferredWidth(225);
-		headLineTable.getColumnModel().getColumn(3).setPreferredWidth(224);
-		headLineTable.getColumnModel().getColumn(4).setPreferredWidth(204);
 		headlineScrollPane.setViewportView(headLineTable);
 		headLineTableModel = (DefaultTableModel) headLineTable.getModel();
-
-		newsModel = new DefaultListModel();
 
 		barChartPanel = new ChartPanel((JFreeChart) null);
 		gbc_barChartPanel = new GridBagConstraints();
@@ -162,7 +167,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		gbc_prWordFrequency.insets = new Insets(0, 0, 5, 5);
 		gbc_prWordFrequency.gridx = 1;
 		gbc_prWordFrequency.gridy = 2;
+
 		getContentPane().add(prWordFrequency, gbc_prWordFrequency);
+
 		prWordFrequency.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
 				new PressReleaseFrequency();
@@ -176,6 +183,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		gbc_twtrWordFrequency.gridx = 1;
 		gbc_twtrWordFrequency.gridy = 3;
 		getContentPane().add(twtrWordFrequency, gbc_twtrWordFrequency);
+
 		twtrWordFrequency.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				new TwitterFrequency();
@@ -197,7 +205,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		gbc_pieChartPanel.insets = new Insets(0, 0, 5, 0);
 		gbc_pieChartPanel.fill = GridBagConstraints.BOTH;
 		gbc_pieChartPanel.gridx = 2;
-		gbc_pieChartPanel.gridy = 4;
+		gbc_pieChartPanel.gridy = 0;
 
 		setVisible(true);
 
@@ -215,10 +223,26 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 		}
 
+		try {
+			pullDataFromDirectory();
+		} catch (IOException e1) {
+			new CheckInternet();
+		}
+
 		new Thread(retrieveNews).start();
 		new Thread(retrieveTwitter).start();
 
 	}
+
+	Action pressButtonAction = new AbstractAction() {
+		public void actionPerformed(ActionEvent e) {
+			int modelRow = Integer.valueOf(e.getActionCommand());
+			String valueToLookup = headLineTable.getModel().getValueAt(modelRow, 1).toString();
+
+			ReadNewsContent dialog = new ReadNewsContent(newsHeadlineAndContent.get(valueToLookup + ".txt").trim());
+
+		}
+	};
 
 	Runnable retrieveNews = new Runnable() {
 		// fast way to remove stop words from long text.
@@ -300,21 +324,27 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 						}
 
 						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataNumber.get(i)) {
+							ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
+
 							for (String ss : headline) {
 								try {
+
 									headLineTableModel.addRow(new Object[] { ++numberOfPRs, ss,
-											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Down",
-											howManyDaysAfter });
+											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Down", howManyDaysAfter,
+											"Read" });
+
 								} catch (ParseException e) {
 									e.printStackTrace();
 								}
 							}
 						} else {
 							for (String ss : headline) {
+								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
+
 								try {
 									headLineTableModel.addRow(new Object[] { ++numberOfPRs, ss,
-											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Up",
-											howManyDaysAfter });
+											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Up", howManyDaysAfter,
+											"Read" });
 								} catch (ParseException e) {
 									e.printStackTrace();
 								}
@@ -334,22 +364,14 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 						String text = ArticleExtractor.INSTANCE.getText(url);
 						writeToCacheFile(text, MainFrame.searchBox.getText(), headlinesForFiles.get(numberOfFiles++));
 					} catch (IOException e) {
-
-						e.printStackTrace();
+						new CheckInternet();
 					} catch (BoilerpipeProcessingException e) {
-
-						e.printStackTrace();
+						new CheckInternet();
 					}
 				}
 
 				Collections.reverse(MainFrame.volumeDataDate);
 				Collections.reverse(MainFrame.volumeDataNumber);
-			}
-
-			try {
-				pullDataFromDirectory();
-			} catch (IOException e1) {
-				e1.printStackTrace();
 			}
 
 			numberOfFiles = 0;
@@ -377,8 +399,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 		}
 
-		final CategoryDataset dataset = createDataset();
-		final JFreeChart chart = createChart(dataset);
+		final CategoryDataset dataset = createDatasetForBarChart();
+		final JFreeChart chart = createBarChart(dataset);
 
 		barChartPanel = new ChartPanel(chart);
 
@@ -395,8 +417,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 		}
 
-		final PieDataset dataset = createSampleDataset(title);
-		final JFreeChart chart = createChart(dataset, title);
+		final PieDataset dataset = createDataSetForPieChart(title);
+		final JFreeChart chart = createPieChart(dataset, title);
 
 		pieChartPanel = new ChartPanel(chart);
 
@@ -415,8 +437,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			File file = listOfFiles[i];
 			if (file.isFile() && file.getName().endsWith(".txt")) {
 				String content = FileUtils.readFileToString(file);
-				newsStuff.put(file.getName(), content);
-				newsModel.addElement(file.getName());
+				newsHeadlineAndContent.put(file.getName(), content);
 			}
 		}
 	}
@@ -456,9 +477,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		if (title.length() > 144)
 			title = title.substring(0, 140);
 
-		String filePath = "C:" + File.separator + "git" + File.separator + "StockMarketProgram"
-				+ File.separator + "cache" + File.separator + symbol + File.separator + title.replaceAll("\"", "")
-				+ ".txt";
+		String filePath = "C:" + File.separator + "git" + File.separator + "StockMarketProgram" + File.separator
+				+ "cache" + File.separator + symbol + File.separator + title.replaceAll("\"", "") + ".txt";
 
 		File f = new File(filePath);
 		if (!f.exists()) {
@@ -530,12 +550,6 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			appendToPane(twitterTextArea, tweetString, Color.BLACK);
 		}
 	};
-	private JTextPane twitterTextArea;
-	private JScrollPane headlineScrollPane;
-	private JTable headLineTable;
-	private JButton prWordFrequency;
-	private JButton twtrWordFrequency;
-	private ChartPanel barChartPanel;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
@@ -598,10 +612,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		tp.replaceSelection(msg);
 	}
 
-	private PieDataset createSampleDataset(String title) {
+	private PieDataset createDataSetForPieChart(String title) {
 
 		final DefaultPieDataset result = new DefaultPieDataset();
-		System.out.println(TopicIdentification.rankings.keySet());
 
 		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
 			result.setValue(TopicIdentification.CATEGORIES[i],
@@ -612,11 +625,15 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return result;
 	}
 
-	private JFreeChart createChart(final PieDataset dataset, String title) {
+	private JFreeChart createPieChart(final PieDataset dataset, String title) {
 
 		final JFreeChart chart = ChartFactory.createPieChart3D(title, dataset, true, true, false);
 
 		final PiePlot3D plot = (PiePlot3D) chart.getPlot();
+
+		PieRenderer renderer = new PieRenderer();
+		renderer.setColor(plot, dataset);
+
 		plot.setStartAngle(290);
 		plot.setDirection(Rotation.CLOCKWISE);
 		plot.setForegroundAlpha(0.5f);
@@ -625,12 +642,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return chart;
 	}
 
-	/**
-	 * Returns a sample dataset.
-	 * 
-	 * @return The dataset.
-	 */
-	private CategoryDataset createDataset() {
+	private CategoryDataset createDatasetForBarChart() {
 		final String series1 = "Significant Terms";
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
@@ -664,15 +676,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 	}
 
-	/**
-	 * Creates a sample chart.
-	 * 
-	 * @param dataset
-	 *            the dataset.
-	 * 
-	 * @return The chart.
-	 */
-	private JFreeChart createChart(final CategoryDataset dataset) {
+	private JFreeChart createBarChart(final CategoryDataset dataset) {
 		final JFreeChart chart = ChartFactory.createBarChart(MainFrame.lblCompanyName.getText().replace("Name: ", ""),
 				"Category", "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
 

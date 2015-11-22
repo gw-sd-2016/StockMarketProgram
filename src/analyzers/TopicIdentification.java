@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-
 import com.aliasi.classify.Classification;
 import com.aliasi.classify.Classified;
 import com.aliasi.classify.DynamicLMClassifier;
@@ -23,6 +22,7 @@ public class TopicIdentification {
 			"health.care", "consumer.goods" };
 	private static String[] symbol = new String[1];
 	public static double[] PROBABILITIES;
+	public static String BESTCATEGORY;
 	public static final Map<String, double[]> rankings = new HashMap<String, double[]>();
 	private static int NGRAM_SIZE = 6;
 
@@ -66,9 +66,8 @@ public class TopicIdentification {
 			String text = Files.readFromFile(new File(classDir, testingFiles[j]), "ISO-8859-1");
 			Classification classification = new Classification(symbol[0]);
 			Classified<CharSequence> classified = new Classified<CharSequence>(text, classification);
-			// evaluator.handle(classified);
 			jc = compiledClassifier.classify(text);
-			String bestCategory = jc.bestCategory();
+			BESTCATEGORY = jc.bestCategory();
 			jointLogProbabilities.add(jc.jointLog2Probability(j));
 
 			PROBABILITIES = new double[jc.size()];
