@@ -15,9 +15,11 @@ import com.aliasi.lm.NGramProcessLM;
 import com.aliasi.util.AbstractExternalizable;
 import com.aliasi.util.Files;
 
+import main.MainFrame;
+
 public class TopicIdentification {
-	private static File TRAINING_DIR = new File("C:/git/StockMarketProgram/trainers/topic.identification");
-	private static File TESTING_DIR = new File("C:/git/StockMarketProgram/cache");
+	private static File TRAINING_DIR = new File(MainFrame.GLOBALPATH + "trainers/topic.identification");
+	private static File TESTING_DIR = new File(MainFrame.GLOBALPATH + "cache");
 	public static String[] CATEGORIES = { "financials", "technology", "utilities", "services", "industrial.goods",
 			"health.care", "consumer.goods" };
 	private static String[] symbol = new String[1];
