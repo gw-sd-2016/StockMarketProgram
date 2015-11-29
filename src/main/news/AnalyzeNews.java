@@ -62,6 +62,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import analyzers.Lingpipe;
+import analyzers.SentimentAnalysis;
 import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
@@ -209,7 +210,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		setVisible(true);
 
-		for (String line : Files.readAllLines(Paths.get("C:\\git\\StockMarketProgram\\stop-words.txt"))) {
+		for (String line : Files.readAllLines(Paths.get(MainFrame.GLOBALPATH + "stop-words.txt"))) {
 			for (String part : line.split("\n")) {
 				stopWordList.add(part);
 			}
@@ -385,7 +386,14 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 
 			try {
-				new Lingpipe(new File("C:/git/StockMarketProgram/cache/" + MainFrame.searchBox.getText()));
+				new Lingpipe(new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			try {
+				new SentimentAnalysis(MainFrame.searchBox.getText());
+			} catch (ClassNotFoundException e) {
+				e.printStackTrace();
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -429,28 +437,29 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 	private void pullDataFromDirectory() throws IOException {
 
-		File folder = new File("C:\\git\\StockMarketProgram\\cache\\" + MainFrame.searchBox.getText());
+		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText());
 
 		File[] listOfFiles = folder.listFiles();
-
-		for (int i = 0; i < listOfFiles.length; i++) {
-			File file = listOfFiles[i];
-			if (file.isFile() && file.getName().endsWith(".txt")) {
-				String content = FileUtils.readFileToString(file);
-				newsHeadlineAndContent.put(file.getName(), content);
+		if (!cacheNeeded(MainFrame.searchBox.getText())) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				File file = listOfFiles[i];
+				if (file.isFile() && file.getName().endsWith(".txt")) {
+					String content = FileUtils.readFileToString(file);
+					newsHeadlineAndContent.put(file.getName(), content);
+				}
 			}
 		}
 	}
 
 	private boolean cacheNeeded(String symbol) {
-		String directory = "C:\\git\\StockMarketProgram\\cache\\" + symbol;
+		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
 		File theDirectory = new File(directory);
 
 		if (theDirectory.exists()) {
 			int fileCount = new File(directory).listFiles().length;
 			int headlineSize = headlinesForFiles.size();
 			if (fileCount != headlineSize) {
-				File fileDirectory = new File("C:\\git\\StockMarketProgram\\cache\\" + symbol);
+				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
 				for (File file : fileDirectory.listFiles())
 					file.delete();
 
@@ -466,7 +475,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	}
 
 	private void createCacheFolder(String symbol) {
-		File dir = new File("C:\\git\\StockMarketProgram\\cache\\" + symbol);
+		File dir = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
 
 		if (!dir.exists()) {
 			dir.mkdir();
@@ -477,8 +486,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		if (title.length() > 144)
 			title = title.substring(0, 140);
 
-		String filePath = "C:" + File.separator + "git" + File.separator + "StockMarketProgram" + File.separator
-				+ "cache" + File.separator + symbol + File.separator + title.replaceAll("\"", "") + ".txt";
+		String filePath = (MainFrame.GLOBALPATH + File.separator + "cache" + File.separator + symbol + File.separator
+				+ title.replaceAll("\"", "") + ".txt");
 
 		File f = new File(filePath);
 		if (!f.exists()) {

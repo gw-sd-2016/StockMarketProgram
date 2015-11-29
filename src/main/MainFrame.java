@@ -78,6 +78,7 @@ import main.news.AnalyzeNews;
 import popupmessages.CheckInternet;
 
 public class MainFrame extends JFrame implements ActionListener, KeyListener, IStringHelper {
+	public static String GLOBALPATH = "C:\\git\\StockMarketProgram\\";
 	private static final Logger logger = Logger.getLogger(MainFrame.class);
 	private static JPanel contentPane;
 	private JMenuBar menuBar;
