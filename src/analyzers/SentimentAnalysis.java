@@ -35,10 +35,6 @@ public class SentimentAnalysis {
 		evaluate();
 	}
 
-	boolean isTrainingFile(File file) {
-		return file.getName().charAt(2) != '9'; // test on fold 9
-	}
-
 	void train() throws IOException {
 		int numTrainingCases = 0;
 		int numTrainingChars = 0;
