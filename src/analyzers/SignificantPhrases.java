@@ -12,7 +12,7 @@ import com.aliasi.tokenizer.TokenizerFactory;
 import com.aliasi.util.Files;
 import com.aliasi.util.ScoredObject;
 
-public class Lingpipe {
+public class SignificantPhrases {
 	private static int NGRAM = 3;
 	private static int MIN_COUNT = 5;
 	private static int NGRAM_REPORTING_LENGTH = 2;
@@ -22,7 +22,7 @@ public class Lingpipe {
 	public static final Map<Double, String> training = new HashMap<Double, String>();
 	public static final Map<Double, String> newterms = new HashMap<Double, String>();
 
-	public Lingpipe(File f) throws IOException {
+	public SignificantPhrases(File f) throws IOException {
 
 		BACKGROUND_DIR = f;
 		FOREGROUND_DIR = f;

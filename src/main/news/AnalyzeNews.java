@@ -61,7 +61,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import analyzers.Lingpipe;
+import analyzers.SignificantPhrases;
 import analyzers.SentimentAnalysis;
 import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
@@ -386,7 +386,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 
 			try {
-				new Lingpipe(new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText()));
+				new SignificantPhrases(new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText()));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -655,7 +655,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		final String series1 = "Significant Terms";
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
-		for (Entry<Double, String> entry : Lingpipe.training.entrySet()) {
+		for (Entry<Double, String> entry : SignificantPhrases.training.entrySet()) {
 			dataset.addValue(entry.getKey(), series1, entry.getValue());
 		}
 		// for (Entry<Double, String> entry : Lingpipe.newterms.entrySet()) {
