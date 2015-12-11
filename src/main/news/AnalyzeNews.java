@@ -144,7 +144,6 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
 
 				addPieChart(fileTitle);
-				addBarChart();
 
 			}
 		});
@@ -293,7 +292,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 			} catch (IOException e) {
 
-				e.printStackTrace();
+				new CheckInternet();
 			}
 
 			int numberOfPRs = 0;
@@ -397,6 +396,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
+			
+			addBarChart();
 		}
 	};
 
