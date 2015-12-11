@@ -1,7 +1,6 @@
 package main.news;
 
 import java.util.Map;
-
 import popupmessages.CheckInternet;
 import twitter4j.Query;
 import twitter4j.QueryResult;
