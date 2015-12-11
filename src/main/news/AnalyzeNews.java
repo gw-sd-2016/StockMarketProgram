@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import java.util.Stack;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JButton;
@@ -61,8 +60,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import analyzers.SignificantPhrases;
 import analyzers.SentimentAnalysis;
+import analyzers.SignificantPhrases;
 import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
@@ -74,14 +73,6 @@ import popupmessages.CheckInternet;
 import popupmessages.PressReleaseFrequency;
 import popupmessages.ReadNewsContent;
 import popupmessages.TwitterFrequency;
-import twitter4j.Query;
-import twitter4j.QueryResult;
-import twitter4j.Status;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.conf.Configuration;
-import twitter4j.conf.ConfigurationBuilder;
 
 public class AnalyzeNews extends JFrame implements IFrequency {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -132,6 +123,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			boolean[] columnEditables = new boolean[] { false, true, true, true, true, true };
 
 			public boolean isCellEditable(int row, int column) {
+				
 				return columnEditables[column];
 			}
 		});
@@ -510,54 +502,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 	Runnable retrieveTwitter = new Runnable() {
 		public void run() {
-			ConfigurationBuilder cb = new ConfigurationBuilder();
+			RetrieveTwitter twitter = new RetrieveTwitter(MainFrame.searchBox.getText());
 
-			cb.setDebugEnabled(false).setOAuthConsumerKey("2pSpxRW6lim5j5Gvl2lo5odUs")
-					.setOAuthConsumerSecret("vQbQ7cfIE961xeKD4V0VznFYOMwNF9cTMBwUikXz0JJFEFKXhW")
-					.setOAuthAccessToken("2726507239-1kQamM5kci9YYI5GArOrL6OgYj1Ob8S0Cs1giDL")
-					.setOAuthAccessTokenSecret("COssPPKOIy5pBR7jAyIisGQ899trqn6ADWcK6zuApiTuH");
-
-			Configuration builder = cb.build();
-
-			TwitterFactory tf = new TwitterFactory(builder);
-
-			Twitter twitter = tf.getInstance();
-
-			Stack<String> tweets = new Stack<String>();
-
-			// tweets that already exist
-			Query query = new Query("$" + MainFrame.searchBox.getText());
-			query.setCount(100); // sets
-									// the
-									// number
-									// of
-									// tweets
-									// to
-									// receive
-			QueryResult result = null;
-
-			try {
-				result = twitter.search(query);
-			} catch (TwitterException e) {
-				new CheckInternet();
-			}
-
-			for (Status status : result.getTweets()) {
-				if (status.isRetweet()) {
-
-				} else {
-					tweets.push(status.getCreatedAt() + "\n" + "\n" + "@" + status.getUser().getScreenName() + ":"
-							+ status.getText());
-				}
-			}
-
-			tweetString = "";
-			while (!tweets.isEmpty()) {
-				tweetString += tweets.pop();
-				tweetString += "\n------------------------------------------\n";
-			}
-
-			appendToPane(twitterTextArea, tweetString, Color.BLACK);
+			appendToPane(twitterTextArea, twitter.retrieveTweets(), Color.BLACK);
 		}
 	};
 
