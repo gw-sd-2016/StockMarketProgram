@@ -5,6 +5,7 @@ import java.awt.GradientPaint;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
+import java.util.List;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Properties;
 import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -60,11 +62,15 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
-import analyzers.SentimentAnalysis;
 import analyzers.SignificantPhrases;
 import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
+import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.pipeline.Annotation;
+import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
 import helpers.IFrequency;
 import helpers.PieRenderer;
@@ -123,7 +129,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			boolean[] columnEditables = new boolean[] { false, true, true, true, true, true };
 
 			public boolean isCellEditable(int row, int column) {
-				
+
 				return columnEditables[column];
 			}
 		});
@@ -134,7 +140,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		headLineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {
 				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
-
+				System.out.println(cleanText(fileTitle));
 				addPieChart(fileTitle);
 
 			}
@@ -321,7 +327,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 							for (String ss : headline) {
 								try {
 
-									headLineTableModel.addRow(new Object[] { ++numberOfPRs, ss,
+									headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
 											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Down", howManyDaysAfter,
 											"Read" });
 
@@ -334,7 +340,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
 
 								try {
-									headLineTableModel.addRow(new Object[] { ++numberOfPRs, ss,
+									headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
 											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Up", howManyDaysAfter,
 											"Read" });
 								} catch (ParseException e) {
@@ -381,17 +387,18 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			try {
-				new SentimentAnalysis(MainFrame.searchBox.getText());
-			} catch (ClassNotFoundException e) {
-				e.printStackTrace();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			
+
 			addBarChart();
 		}
 	};
+	
+	//cleans text since files can't have certain characters
+	private String cleanText(String fix) {
+		String result = fix;
+		result = result.replaceAll("[^a-zA-Z0-9.-]", " ").trim().replaceAll(" +", " ");
+		
+		return result;
+	}
 
 	private void addBarChart() {
 		if (getContentPane().getComponentCount() != 0) {
@@ -480,7 +487,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			title = title.substring(0, 140);
 
 		String filePath = (MainFrame.GLOBALPATH + File.separator + "cache" + File.separator + symbol + File.separator
-				+ title.replaceAll("\"", "") + ".txt");
+				+ cleanText(title.replaceAll("\"", "")) + ".txt");
 
 		File f = new File(filePath);
 		if (!f.exists()) {
@@ -504,7 +511,33 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		public void run() {
 			RetrieveTwitter twitter = new RetrieveTwitter(MainFrame.searchBox.getText());
 
-			appendToPane(twitterTextArea, twitter.retrieveTweets(), Color.BLACK);
+			// appendToPane(twitterTextArea, twitter.retrieveTweets(),
+			// Color.BLACK);
+			// ArrayList<String> tweets = new ArrayList<String>();
+
+			// String[] myList = twitter.retrieveTweets().split("\n");
+
+			String text = twitter.retrieveTweets();
+			String result = "";
+			//System.out.println(text);
+			
+			appendToPane(twitterTextArea, "Loading . . ." , Color.BLACK);
+
+			Properties props = new Properties();
+			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
+			StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+			Annotation annotation = pipeline.process(text);
+			List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+			for (CoreMap sentence : sentences) {
+				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+				System.out.println(sentiment + "\t" + sentence);
+				result += sentiment + "\t" + sentence + '\n';
+			}
+			
+			twitterTextArea.setText("");
+
+			appendToPane(twitterTextArea, result, Color.BLACK);
+
 		}
 	};
 
@@ -551,7 +584,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	public void printMap(Map<String, Integer> map, JTextPane printArea) {
 		for (Map.Entry entry : map.entrySet()) {
 			appendToPane(printArea,
-					"Word : " + entry.getKey() + " ---- How many times it appears : " + entry.getValue() + "\n",
+					"Words : " + entry.getKey() + " ---- How many times it appears : " + entry.getValue() + "\n",
 					Color.BLACK);
 		}
 	}
