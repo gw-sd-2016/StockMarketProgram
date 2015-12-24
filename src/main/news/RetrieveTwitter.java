@@ -27,13 +27,17 @@ public class RetrieveTwitter {
 
 	}
 
-	public static String cleanText(String text) {
+	public static String cleanCharacters(String text) {
 
+		text = text.replaceAll("https.*\\p{L}+", " ");
+		text = text.replaceAll("\\$\\p{L}+", "");
+		text = text.replaceAll("@\\p{L}+", " ");
 		text = text.replace("\n", "\\n");
 		text = text.replace("\t", "\\t");
 		text = text.replace(".", "");
 		text = text.replaceAll("[^a-zA-Z\\s]", "");
-		text = text.replaceAll("https\\p{L}+", "");
+		text = text.replaceAll("\\s+", " ");
+		text = text.replaceAll("RT", "");
 
 		return text;
 	}
@@ -108,9 +112,10 @@ public class RetrieveTwitter {
 						maxID = s.getId();
 					}
 
-					result += cleanText(s.getText()) + ". ";
+					result += cleanCharacters(s.getText()) + ". ";
 
 				}
+
 				searchTweetsRateLimit = r.getRateLimitStatus();
 			}
 
