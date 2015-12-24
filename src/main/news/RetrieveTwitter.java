@@ -28,33 +28,36 @@ public class RetrieveTwitter {
 	}
 
 	public static String cleanText(String text) {
-		
+
 		text = text.replace("\n", "\\n");
 		text = text.replace("\t", "\\t");
-		
+		text = text.replace(".", "");
+		text = text.replaceAll("[^a-zA-Z\\s]", "");
+		text = text.replaceAll("https\\p{L}+", "");
+
 		return text;
 	}
 
 	public static OAuth2Token getOAuth2Token() {
-		
+
 		OAuth2Token token = null;
 		ConfigurationBuilder cb;
 		cb = new ConfigurationBuilder();
 		cb.setApplicationOnlyAuthEnabled(true);
 		cb.setOAuthConsumerKey(CONSUMER_KEY).setOAuthConsumerSecret(CONSUMER_SECRET);
-		
+
 		try {
-			
+
 			token = new TwitterFactory(cb.build()).getInstance().getOAuth2Token();
 		} catch (Exception e) {
-			
+
 			new CheckInternet();
 		}
 		return token;
 	}
 
 	public static Twitter getTwitter() {
-		
+
 		OAuth2Token token;
 		token = getOAuth2Token();
 
@@ -80,11 +83,8 @@ public class RetrieveTwitter {
 			RateLimitStatus searchTweetsRateLimit = rateLimitStatus.get("/search/tweets");
 
 			for (int queryNumber = 0; queryNumber < MAX_QUERIES; queryNumber++) {
-				System.out.printf("\n\n!!! Starting loop %d\n\n", queryNumber);
-
 				if (searchTweetsRateLimit.getRemaining() == 0) {
-					System.out.printf("!!! Sleeping for %d seconds due to rate limits\n",
-							searchTweetsRateLimit.getSecondsUntilReset());
+					searchTweetsRateLimit.getSecondsUntilReset();
 					Thread.sleep((searchTweetsRateLimit.getSecondsUntilReset() + 2) * 1000l);
 				}
 
@@ -108,16 +108,13 @@ public class RetrieveTwitter {
 						maxID = s.getId();
 					}
 
-					result += "\n" + s.getCreatedAt().toString() + " - " + s.getUser().getScreenName() + " = "
-							+ cleanText(s.getText());
-					System.out.printf("At %s, @%-20s said: %s\n", s.getCreatedAt().toString(),
-							s.getUser().getScreenName(), cleanText(s.getText()));
+					result += cleanText(s.getText()) + ". ";
 
 				}
 				searchTweetsRateLimit = r.getRateLimitStatus();
 			}
 
-			return result + "\n\n\n\n\n\n\n\n\n\n" + String.valueOf(totalTweets);
+			return result;
 
 		} catch (Exception e) {
 			e.printStackTrace();
