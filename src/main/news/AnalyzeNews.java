@@ -79,6 +79,9 @@ import popupmessages.CheckInternet;
 import popupmessages.PressReleaseFrequency;
 import popupmessages.ReadNewsContent;
 import popupmessages.TwitterFrequency;
+import javax.swing.JPanel;
+import java.awt.GridLayout;
+import javax.swing.JLabel;
 
 public class AnalyzeNews extends JFrame implements IFrequency {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -109,7 +112,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		headlineScrollPane = new JScrollPane();
 		GridBagConstraints gbc_headlineScrollPane = new GridBagConstraints();
-		gbc_headlineScrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_headlineScrollPane.insets = new Insets(0, 0, 5, 5);
 		gbc_headlineScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_headlineScrollPane.gridx = 1;
 		gbc_headlineScrollPane.gridy = 0;
@@ -198,6 +201,24 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		twitterTextArea = new JTextPane();
 		twitterScrollPane.setViewportView(twitterTextArea);
+
+		panel = new JPanel();
+		GridBagConstraints gbc_panel = new GridBagConstraints();
+		gbc_panel.insets = new Insets(0, 0, 0, 5);
+		gbc_panel.fill = GridBagConstraints.VERTICAL;
+		gbc_panel.gridx = 1;
+		gbc_panel.gridy = 5;
+		getContentPane().add(panel, gbc_panel);
+		panel.setLayout(new GridLayout(1, 0, 0, 0));
+
+		twitterPosLabel = new JLabel("Positive:");
+		panel.add(twitterPosLabel);
+
+		twitterNegLabel = new JLabel("Negative: ");
+		panel.add(twitterNegLabel);
+		
+		twitterNeutLabel = new JLabel("Neutral:");
+		panel.add(twitterNeutLabel);
 
 		gbc_pieChartPanel = new GridBagConstraints();
 		gbc_pieChartPanel.insets = new Insets(0, 0, 5, 0);
@@ -391,12 +412,12 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			addBarChart();
 		}
 	};
-	
-	//cleans text since files can't have certain characters
+
+	// cleans text since files can't have certain characters
 	private String cleanText(String fix) {
 		String result = fix;
 		result = result.replaceAll("[^a-zA-Z0-9.-]", " ").trim().replaceAll(" +", " ");
-		
+
 		return result;
 	}
 
@@ -519,27 +540,33 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 			String text = twitter.retrieveTweets();
 			String result = "";
-			//System.out.println(text);
-			
-			appendToPane(twitterTextArea, "Loading . . ." , Color.BLACK);
+
+			appendToPane(twitterTextArea, "Loading . . .", Color.BLACK);
 
 			Properties props = new Properties();
 			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
 			StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
 			Annotation annotation = pipeline.process(text);
 			List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+
 			for (CoreMap sentence : sentences) {
 				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
 				System.out.println(sentiment + "\t" + sentence);
 				result += sentiment + "\t" + sentence + '\n';
 			}
-			
+
 			twitterTextArea.setText("");
+
+			wordFrequency(result, twitterPosLabel);
 
 			appendToPane(twitterTextArea, result, Color.BLACK);
 
 		}
 	};
+	private JPanel panel;
+	private JLabel twitterNegLabel;
+	private JLabel twitterPosLabel;
+	private JLabel twitterNeutLabel;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
@@ -553,8 +580,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return messageLinks;
 	}
 
-	@Override
-	public Map<String, Integer> wordFrequency(String xlo, JTextPane printArea) {
+	public Map<String, Integer> wordFrequency(String xlo, JLabel printArea) {
 		Map<String, Integer> myMap = new HashMap<String, Integer>();
 
 		String words = xlo;
@@ -580,13 +606,11 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return myMap;
 	}
 
-	@Override
-	public void printMap(Map<String, Integer> map, JTextPane printArea) {
-		for (Map.Entry entry : map.entrySet()) {
-			appendToPane(printArea,
-					"Words : " + entry.getKey() + " ---- How many times it appears : " + entry.getValue() + "\n",
-					Color.BLACK);
-		}
+	//FIX ARGUMENTS
+	public void printMap(Map<String, Integer> map, JLabel printArea) {
+		twitterNegLabel.setText("Negative: " + map.get("negative"));
+		twitterPosLabel.setText("Positive: " + map.get("positive"));
+		twitterNeutLabel.setText("Neutral: " + map.get("neutral"));
 	}
 
 	private void appendToPane(JTextPane tp, String msg, Color c) {
@@ -694,5 +718,17 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		domainAxis.setCategoryLabelPositions(CategoryLabelPositions.createUpRotationLabelPositions(Math.PI / 6.0));
 
 		return chart;
+	}
+
+	@Override
+	public Map<String, Integer> wordFrequency(String xlo, JTextPane printArea) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public void printMap(Map<String, Integer> map, JTextPane printArea) {
+		// TODO Auto-generated method stub
+
 	}
 }
