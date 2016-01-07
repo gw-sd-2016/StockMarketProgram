@@ -38,6 +38,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -83,11 +84,12 @@ import javax.swing.JPanel;
 import java.awt.GridLayout;
 import javax.swing.JLabel;
 
-public class AnalyzeNews extends JFrame implements IFrequency {
+public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
 	private static DefaultTableModel headLineTableModel; // model for volume
 	public static String tweetString;
 	private Map<String, String> newsHeadlineAndContent = new HashMap<String, String>();
+	private Map<String, String> tweetHeadlineAndContent = new HashMap<String, String>();
 	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private ChartPanel pieChartPanel;
 	private GridBagConstraints gbc_pieChartPanel;
@@ -148,7 +150,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 				try {
 					addPieChart(fileTitle);
 				} catch (Exception e) {
-					System.out.println("e");
+					new CheckInternet();
 				}
 
 			}
@@ -417,7 +419,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 
 			addBarChart();
+			numberOfTimesSeenPressRelease();
 		}
+
 	};
 
 	// cleans text since files can't have certain characters
@@ -446,7 +450,6 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	}
 
 	private void addPieChart(String title) {
-
 		if (getContentPane().getComponentCount() != 0) {
 			if (pieChartPanel != null) {
 				getContentPane().remove(pieChartPanel);
@@ -464,7 +467,6 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	}
 
 	private void pullDataFromDirectory() throws IOException {
-
 		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText());
 
 		File[] listOfFiles = folder.listFiles();
@@ -581,8 +583,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 			for (CoreMap sentence : sentences) {
 				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-				System.out.println(sentiment + "\t" + sentence);
+				// System.out.println(sentiment + "\t" + sentence);
 				result += sentiment + "\t" + sentence + '\n';
+				tweetHeadlineAndContent.put(sentence.toString(), sentiment);
 			}
 
 			twitterTextArea.setText("");
@@ -591,8 +594,11 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 			appendToPane(twitterTextArea, result, Color.BLACK);
 
+			numberOfTimesSeenTwitter();
+
 		}
 	};
+
 	private JPanel panel;
 	private JLabel twitterNegLabel;
 	private JLabel twitterPosLabel;
@@ -659,6 +665,8 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 	private PieDataset createDataSetForPieChart(String title) {
 
 		final DefaultPieDataset result = new DefaultPieDataset();
+		
+		boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText());
 
 		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
 			result.setValue(TopicIdentification.CATEGORIES[i],
@@ -750,15 +758,72 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return chart;
 	}
 
-	@Override
-	public Map<String, Integer> wordFrequency(String xlo, JTextPane printArea) {
-		// TODO Auto-generated method stub
-		return null;
+	private void numberOfTimesSeenPressRelease() {
+		String search = "haste";
+		Map<String, Integer> result = new HashMap<String, Integer>();
+
+		for (String headline : newsHeadlineAndContent.keySet()) {
+			if (newsHeadlineAndContent.get(headline).contains(search)) {
+				System.out
+						.println(headline + " = " + headLineTable.getModel().getValueAt(returnRowNumber(headline), 3));
+				result = wordFrequency(newsHeadlineAndContent.get(headline));
+				System.out.println("seen " + result.get(search));
+
+			}
+		}
+
 	}
 
-	@Override
-	public void printMap(Map<String, Integer> map, JTextPane printArea) {
-		// TODO Auto-generated method stub
+	private void numberOfTimesSeenTwitter() {
+		String search = "platform";
+		Map<String, Integer> result = new HashMap<String, Integer>();
 
+		// number of times seen for tweets
+		for (String tweet : tweetHeadlineAndContent.keySet()) {
+			result = wordFrequency(tweet);
+			if (result.get(search) != null) {
+				System.out.println(
+						search + " == " + result.get(search) + " in = " + tweet + tweetHeadlineAndContent.get(tweet));
+			}
+		}
+	}
+
+	// returns the row that the headline is in
+	private int returnRowNumber(String find) {
+		for (int row = 0; row < headLineTable.getModel().getRowCount(); row++) {
+
+			if (find.contains(headLineTable.getModel().getValueAt(row, 1).toString())) {
+
+				return row;
+			}
+		}
+
+		return 0;
+	}
+
+	public Map<String, Integer> wordFrequency(String xlo) {
+		Map<String, Integer> myMap = new HashMap<String, Integer>();
+
+		String words = xlo;
+
+		String lowerCase = words.toLowerCase();
+		String alphaOnly = lowerCase.replaceAll("\\W", " "); // Replaces all
+																// special
+																// characters
+		String finalString = alphaOnly.replaceAll("[0-9]", " "); // Gets rid of
+																	// numbers
+		String[] array = finalString.split("\\s+");
+
+		for (String name : array) {
+			if (myMap.containsKey(name)) {
+				int count = myMap.get(name);
+				myMap.put(name, count + 1);
+
+			} else {
+				myMap.put(name, 1);
+			}
+		}
+
+		return myMap;
 	}
 }
