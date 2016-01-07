@@ -142,8 +142,9 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		headLineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {
+
 				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
-				System.out.println(cleanText(fileTitle));
+				boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText(), fileTitle);
 				addPieChart(fileTitle);
 
 			}
@@ -216,7 +217,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		twitterNegLabel = new JLabel("Negative: ");
 		panel.add(twitterNegLabel);
-		
+
 		twitterNeutLabel = new JLabel("Neutral:");
 		panel.add(twitterNeutLabel);
 
@@ -315,7 +316,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			}
 
 			int numberOfPRs = 0;
-			boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText());
+			boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText(), null);
 
 			// this will get the days volume of press release and the next 3
 			// days (if not what is available)
@@ -461,7 +462,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText());
 
 		File[] listOfFiles = folder.listFiles();
-		if (!cacheNeeded(MainFrame.searchBox.getText())) {
+		if (!cacheNeeded(MainFrame.searchBox.getText(), null)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				File file = listOfFiles[i];
 				if (file.isFile() && file.getName().endsWith(".txt")) {
@@ -472,9 +473,10 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		}
 	}
 
-	private boolean cacheNeeded(String symbol) {
+	private boolean cacheNeeded(String symbol, String fileName) {
 		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
 		File theDirectory = new File(directory);
+		File theFile = new File(theDirectory + "\\" + fileName);
 
 		if (theDirectory.exists()) {
 			int fileCount = new File(directory).listFiles().length;
@@ -486,7 +488,12 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 				return true;
 			} else {
-				return false;
+				if (!theFile.exists()) {
+					System.out.println("in here");
+					System.exit(0);
+				}
+
+				return true;
 			}
 		} else {
 			createCacheFolder(symbol);
@@ -606,7 +613,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return myMap;
 	}
 
-	//FIX ARGUMENTS
+	// FIX ARGUMENTS
 	public void printMap(Map<String, Integer> map, JLabel printArea) {
 		twitterNegLabel.setText("Negative: " + map.get("negative"));
 		twitterPosLabel.setText("Positive: " + map.get("positive"));
