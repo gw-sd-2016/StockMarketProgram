@@ -144,7 +144,12 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 			public void valueChanged(ListSelectionEvent event) {
 				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
 				System.out.println(cleanText(fileTitle));
-				addPieChart(fileTitle);
+
+				try {
+					addPieChart(fileTitle);
+				} catch (Exception e) {
+					System.out.println("e");
+				}
 
 			}
 		});
@@ -216,7 +221,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 
 		twitterNegLabel = new JLabel("Negative: ");
 		panel.add(twitterNegLabel);
-		
+
 		twitterNeutLabel = new JLabel("Neutral:");
 		panel.add(twitterNeutLabel);
 
@@ -373,10 +378,12 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 				}
 			}
 
+			boolean fileExists = fileNameExistsInDirectory(MainFrame.searchBox.getText());
+
 			int numberOfFiles = 0;
 
 			for (String s : extractMessageLinks(doc)) {
-				if (cacheISNeeded) {
+				if (cacheISNeeded || !fileExists) {
 					try {
 
 						URL url = new URL(s);
@@ -470,6 +477,29 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 				}
 			}
 		}
+	}
+
+	private boolean fileNameExistsInDirectory(String symbol) {
+		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
+		File theDirectory = new File(directory);
+
+		System.out.println("d is " + theDirectory);
+
+		for (int row = 0; row < headLineTableModel.getRowCount(); row++) {
+			File theFile = new File(
+					theDirectory + File.separator + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
+			System.out.println("file is : " + theFile);
+
+			if (!theFile.exists()) {
+				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+				for (File file : fileDirectory.listFiles())
+					file.delete();
+
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private boolean cacheNeeded(String symbol) {
@@ -606,7 +636,7 @@ public class AnalyzeNews extends JFrame implements IFrequency {
 		return myMap;
 	}
 
-	//FIX ARGUMENTS
+	// FIX ARGUMENTS
 	public void printMap(Map<String, Integer> map, JLabel printArea) {
 		twitterNegLabel.setText("Negative: " + map.get("negative"));
 		twitterPosLabel.setText("Positive: " + map.get("positive"));
