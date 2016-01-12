@@ -427,7 +427,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		return chart;
 	}
 
-	class VolumeHistory {
+	public class VolumeHistory {
 		public XYDataset dataset;
 		public XYDataset priceData;
 		public JFreeChart chart;
