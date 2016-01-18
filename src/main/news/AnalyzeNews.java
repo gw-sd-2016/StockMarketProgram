@@ -32,6 +32,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
+import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
 import javax.swing.event.ListSelectionEvent;
@@ -40,10 +41,12 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 import javax.swing.text.StyleContext;
 import org.apache.commons.io.FileUtils;
+import org.jdesktop.swingx.prompt.PromptSupport;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -73,7 +76,6 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
-import helpers.IFrequency;
 import helpers.PieRenderer;
 import main.MainFrame;
 import popupmessages.CheckInternet;
@@ -83,10 +85,14 @@ import popupmessages.TwitterFrequency;
 import javax.swing.JPanel;
 import java.awt.GridLayout;
 import javax.swing.JLabel;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
 	private static DefaultTableModel headLineTableModel; // model for volume
+	private static DefaultTableModel informationTableModel; // model for info
+															// summary
 	public static String tweetString;
 	private Map<String, String> newsHeadlineAndContent = new HashMap<String, String>();
 	private Map<String, String> tweetHeadlineAndContent = new HashMap<String, String>();
@@ -106,7 +112,7 @@ public class AnalyzeNews extends JFrame {
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 0, 213, 0 };
+		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 229, 0, 0, 293, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
@@ -138,6 +144,7 @@ public class AnalyzeNews extends JFrame {
 				return columnEditables[column];
 			}
 		});
+
 		headLineTable.getColumnModel().getColumn(2).setPreferredWidth(225);
 		headLineTable.getColumnModel().getColumn(4).setPreferredWidth(224);
 		headLineTable.getColumnModel().getColumn(5).setPreferredWidth(204);
@@ -152,7 +159,6 @@ public class AnalyzeNews extends JFrame {
 				} catch (Exception e) {
 					new CheckInternet();
 				}
-
 			}
 		});
 
@@ -198,6 +204,27 @@ public class AnalyzeNews extends JFrame {
 			}
 		});
 
+		informationTextField = new JTextField();
+		PromptSupport.setPrompt("Enter a Word or Phrase to Search", informationTextField);
+
+		informationTextField.addKeyListener(new KeyAdapter() {
+			@Override
+			public void keyPressed(KeyEvent arg0) {
+				if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
+
+					numberOfTimesSeenPressRelease();
+					numberOfTimesSeenTwitter();
+				}
+			}
+		});
+
+		GridBagConstraints gbc_textField = new GridBagConstraints();
+		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
+		gbc_textField.insets = new Insets(0, 0, 5, 0);
+		gbc_textField.gridx = 2;
+		gbc_textField.gridy = 3;
+		getContentPane().add(informationTextField, gbc_textField);
+
 		JScrollPane twitterScrollPane = new JScrollPane();
 		GridBagConstraints gbc_twitterScrollPane = new GridBagConstraints();
 		gbc_twitterScrollPane.insets = new Insets(0, 0, 5, 5);
@@ -209,6 +236,34 @@ public class AnalyzeNews extends JFrame {
 		twitterTextArea = new JTextPane();
 		twitterScrollPane.setViewportView(twitterTextArea);
 
+		informationScrollPane = new JScrollPane();
+		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
+		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_scrollPane.fill = GridBagConstraints.BOTH;
+		gbc_scrollPane.gridx = 2;
+		gbc_scrollPane.gridy = 4;
+		getContentPane().add(informationScrollPane, gbc_scrollPane);
+
+		informationTable = new JTable();
+		informationTable.setModel(new DefaultTableModel(new Object[][] {},
+				new String[] { "Type", "Title", "Number of Times Seen", "Movement" }) {
+			Class[] columnTypes = new Class[] { String.class, String.class, Integer.class, String.class };
+
+			public Class getColumnClass(int columnIndex) {
+				return columnTypes[columnIndex];
+			}
+
+			boolean[] columnEditables = new boolean[] { false, true, true, true, true, true };
+
+			public boolean isCellEditable(int row, int column) {
+
+				return columnEditables[column];
+			}
+		});
+
+		informationScrollPane.setViewportView(informationTable);
+		informationTableModel = (DefaultTableModel) informationTable.getModel();
+
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
 		gbc_panel.insets = new Insets(0, 0, 0, 5);
@@ -218,13 +273,13 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(panel, gbc_panel);
 		panel.setLayout(new GridLayout(1, 0, 0, 0));
 
-		twitterPosLabel = new JLabel("Positive:");
+		twitterPosLabel = new JLabel("Positive: ");
 		panel.add(twitterPosLabel);
 
 		twitterNegLabel = new JLabel("Negative: ");
 		panel.add(twitterNegLabel);
 
-		twitterNeutLabel = new JLabel("Neutral:");
+		twitterNeutLabel = new JLabel("Neutral: ");
 		panel.add(twitterNeutLabel);
 
 		gbc_pieChartPanel = new GridBagConstraints();
@@ -309,6 +364,7 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		public void run() {
+			
 			Document doc = null;
 
 			try {
@@ -417,11 +473,11 @@ public class AnalyzeNews extends JFrame {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-
+			
+			addDefaultPieChart(MainFrame.searchBox.getText().toUpperCase());
 			addBarChart();
-			numberOfTimesSeenPressRelease();
+			
 		}
-
 	};
 
 	// cleans text since files can't have certain characters
@@ -466,9 +522,19 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().repaint();
 	}
 
+	private void addDefaultPieChart(String title) {
+		final PieDataset dataset = createDefaultDataSetForPiechart(title);
+		final JFreeChart chart = createPieChart(dataset, title);
+
+		pieChartPanel = new ChartPanel(chart);
+
+		getContentPane().add(pieChartPanel, gbc_pieChartPanel);
+		getContentPane().revalidate();
+		getContentPane().repaint();
+	}
+
 	private void pullDataFromDirectory() throws IOException {
 		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText());
-
 		File[] listOfFiles = folder.listFiles();
 		if (!cacheNeeded(MainFrame.searchBox.getText())) {
 			for (int i = 0; i < listOfFiles.length; i++) {
@@ -485,12 +551,9 @@ public class AnalyzeNews extends JFrame {
 		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
 		File theDirectory = new File(directory);
 
-		System.out.println("d is " + theDirectory);
-
 		for (int row = 0; row < headLineTableModel.getRowCount(); row++) {
 			File theFile = new File(
 					theDirectory + File.separator + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
-			System.out.println("file is : " + theFile);
 
 			if (!theFile.exists()) {
 				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
@@ -571,7 +634,8 @@ public class AnalyzeNews extends JFrame {
 			// String[] myList = twitter.retrieveTweets().split("\n");
 
 			String text = twitter.retrieveTweets();
-			String result = "";
+			String singleResult = "";
+			String fullResult = "";
 
 			appendToPane(twitterTextArea, "Loading . . .", Color.BLACK);
 
@@ -581,20 +645,30 @@ public class AnalyzeNews extends JFrame {
 			Annotation annotation = pipeline.process(text);
 			List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
 
+			twitterTextArea.setText("");
+
 			for (CoreMap sentence : sentences) {
 				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-				// System.out.println(sentiment + "\t" + sentence);
-				result += sentiment + "\t" + sentence + '\n';
+
+				singleResult = sentiment + "\t" + sentence + '\n';
+				fullResult += sentiment + "\t" + sentence + '\n';
+
+				if (sentiment.equals("Positive")) {
+					appendToPane(twitterTextArea, singleResult, Color.BLACK);
+				} else if (sentiment.equals("Negative")) {
+					appendToPane(twitterTextArea, singleResult, Color.RED);
+				} else {
+					appendToPane(twitterTextArea, singleResult, Color.GRAY);
+				}
+
 				tweetHeadlineAndContent.put(sentence.toString(), sentiment);
 			}
 
-			twitterTextArea.setText("");
-
-			wordFrequency(result, twitterPosLabel);
-
-			appendToPane(twitterTextArea, result, Color.BLACK);
+			wordFrequency(fullResult, twitterPosLabel);
 
 			numberOfTimesSeenTwitter();
+
+			twitterTextArea.setCaretPosition(0);
 
 		}
 	};
@@ -603,6 +677,9 @@ public class AnalyzeNews extends JFrame {
 	private JLabel twitterNegLabel;
 	private JLabel twitterPosLabel;
 	private JLabel twitterNeutLabel;
+	private JTextComponent informationTextField;
+	private JScrollPane informationScrollPane;
+	private JTable informationTable;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
@@ -644,9 +721,9 @@ public class AnalyzeNews extends JFrame {
 
 	// FIX ARGUMENTS
 	public void printMap(Map<String, Integer> map, JLabel printArea) {
-		twitterNegLabel.setText("Negative: " + map.get("negative"));
-		twitterPosLabel.setText("Positive: " + map.get("positive"));
-		twitterNeutLabel.setText("Neutral: " + map.get("neutral"));
+		twitterNegLabel.setText("Negative: " + map.get("negative") + " ");
+		twitterPosLabel.setText("Positive: " + map.get("positive") + " ");
+		twitterNeutLabel.setText("Neutral: " + map.get("neutral") + " ");
 	}
 
 	private void appendToPane(JTextPane tp, String msg, Color c) {
@@ -665,13 +742,23 @@ public class AnalyzeNews extends JFrame {
 	private PieDataset createDataSetForPieChart(String title) {
 
 		final DefaultPieDataset result = new DefaultPieDataset();
-		
+
 		boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText());
 
 		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
 			result.setValue(TopicIdentification.CATEGORIES[i],
 					Math.abs(new Double(Math.abs(TopicIdentification.rankings.get(title)[i]))) / 1000);
+		}
 
+		return result;
+	}
+
+	private PieDataset createDefaultDataSetForPiechart(String title) {
+
+		final DefaultPieDataset result = new DefaultPieDataset();
+
+		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
+			result.setValue(TopicIdentification.CATEGORIES[i], 0);
 		}
 
 		return result;
@@ -701,28 +788,6 @@ public class AnalyzeNews extends JFrame {
 		for (Entry<Double, String> entry : SignificantPhrases.training.entrySet()) {
 			dataset.addValue(entry.getKey(), series1, entry.getValue());
 		}
-		// for (Entry<Double, String> entry : Lingpipe.newterms.entrySet()) {
-		// System.out.println(entry.getKey() + "/" + entry.getValue());
-		// dataset.addValue(entry.getKey()*1000, series2, entry.getValue());
-		// }
-
-		// dataset.addValue(1.0, series1, category1);
-		// dataset.addValue(4.0, series1, category2);
-		// dataset.addValue(3.0, series1, category3);
-		// dataset.addValue(5.0, series1, category4);
-		// dataset.addValue(5.0, series1, category5);
-		//
-		// dataset.addValue(5.0, series2, category1);
-		// dataset.addValue(7.0, series2, category2);
-		// dataset.addValue(6.0, series2, category3);
-		// dataset.addValue(8.0, series2, category4);
-		// dataset.addValue(4.0, series2, category5);
-		//
-		// dataset.addValue(4.0, series3, category1);
-		// dataset.addValue(3.0, series3, category2);
-		// dataset.addValue(2.0, series3, category3);
-		// dataset.addValue(3.0, series3, category4);
-		// dataset.addValue(6.0, series3, category5);
 
 		return dataset;
 
@@ -759,31 +824,31 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void numberOfTimesSeenPressRelease() {
-		String search = "haste";
+		String search = informationTextField.getText();
 		Map<String, Integer> result = new HashMap<String, Integer>();
+		informationTableModel.setRowCount(0);
 
 		for (String headline : newsHeadlineAndContent.keySet()) {
 			if (newsHeadlineAndContent.get(headline).contains(search)) {
-				System.out
-						.println(headline + " = " + headLineTable.getModel().getValueAt(returnRowNumber(headline), 3));
 				result = wordFrequency(newsHeadlineAndContent.get(headline));
-				System.out.println("seen " + result.get(search));
+				informationTableModel.addRow(new Object[] { "Press Release", newsHeadlineAndContent.get(headline),
+						result.get(search), headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
 
 			}
 		}
-
 	}
 
 	private void numberOfTimesSeenTwitter() {
-		String search = "platform";
+		String search = informationTextField.getText();
 		Map<String, Integer> result = new HashMap<String, Integer>();
 
 		// number of times seen for tweets
 		for (String tweet : tweetHeadlineAndContent.keySet()) {
 			result = wordFrequency(tweet);
 			if (result.get(search) != null) {
-				System.out.println(
-						search + " == " + result.get(search) + " in = " + tweet + tweetHeadlineAndContent.get(tweet));
+				informationTableModel.addRow(
+						new Object[] { "Tweet", tweet, result.get(search), tweetHeadlineAndContent.get(tweet) });
+
 			}
 		}
 	}
