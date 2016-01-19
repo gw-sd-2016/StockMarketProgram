@@ -103,8 +103,6 @@ public class AnalyzeNews extends JFrame {
 	private JTextPane twitterTextArea;
 	private JScrollPane headlineScrollPane;
 	private JTable headLineTable;
-	private JButton prWordFrequency;
-	private JButton twtrWordFrequency;
 	private ChartPanel barChartPanel;
 
 	public AnalyzeNews() throws IOException {
@@ -113,9 +111,9 @@ public class AnalyzeNews extends JFrame {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
-		gridBagLayout.rowHeights = new int[] { 197, 229, 0, 0, 293, 0, 0 };
+		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
-		gridBagLayout.rowWeights = new double[] { 0.0, 1.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		getContentPane().setLayout(gridBagLayout);
 
 		headlineScrollPane = new JScrollPane();
@@ -173,36 +171,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_barChartPanel.insets = new Insets(0, 0, 5, 5);
 		gbc_barChartPanel.fill = GridBagConstraints.BOTH;
 		gbc_barChartPanel.gridx = 1;
-		gbc_barChartPanel.gridy = 1;
-
-		prWordFrequency = new JButton("Press Release Word Frequency");
-		GridBagConstraints gbc_prWordFrequency = new GridBagConstraints();
-		gbc_prWordFrequency.anchor = GridBagConstraints.WEST;
-		gbc_prWordFrequency.insets = new Insets(0, 0, 5, 5);
-		gbc_prWordFrequency.gridx = 1;
-		gbc_prWordFrequency.gridy = 2;
-
-		getContentPane().add(prWordFrequency, gbc_prWordFrequency);
-
-		prWordFrequency.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				new PressReleaseFrequency();
-			}
-		});
-
-		twtrWordFrequency = new JButton("Twitter Word Frequency");
-		GridBagConstraints gbc_twtrWordFrequency = new GridBagConstraints();
-		gbc_twtrWordFrequency.anchor = GridBagConstraints.WEST;
-		gbc_twtrWordFrequency.insets = new Insets(0, 0, 5, 5);
-		gbc_twtrWordFrequency.gridx = 1;
-		gbc_twtrWordFrequency.gridy = 3;
-		getContentPane().add(twtrWordFrequency, gbc_twtrWordFrequency);
-
-		twtrWordFrequency.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent arg0) {
-				new TwitterFrequency();
-			}
-		});
+		gbc_barChartPanel.gridy = 2;
 
 		informationTextField = new JTextField();
 		PromptSupport.setPrompt("Enter a Word or Phrase to Search", informationTextField);
@@ -222,32 +191,21 @@ public class AnalyzeNews extends JFrame {
 		gbc_textField.fill = GridBagConstraints.HORIZONTAL;
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
 		gbc_textField.gridx = 2;
-		gbc_textField.gridy = 3;
+		gbc_textField.gridy = 1;
 		getContentPane().add(informationTextField, gbc_textField);
-
-		JScrollPane twitterScrollPane = new JScrollPane();
-		GridBagConstraints gbc_twitterScrollPane = new GridBagConstraints();
-		gbc_twitterScrollPane.insets = new Insets(0, 0, 5, 5);
-		gbc_twitterScrollPane.fill = GridBagConstraints.BOTH;
-		gbc_twitterScrollPane.gridx = 1;
-		gbc_twitterScrollPane.gridy = 4;
-		getContentPane().add(twitterScrollPane, gbc_twitterScrollPane);
-
-		twitterTextArea = new JTextPane();
-		twitterScrollPane.setViewportView(twitterTextArea);
 
 		informationScrollPane = new JScrollPane();
 		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
 		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
 		gbc_scrollPane.fill = GridBagConstraints.BOTH;
 		gbc_scrollPane.gridx = 2;
-		gbc_scrollPane.gridy = 4;
+		gbc_scrollPane.gridy = 2;
 		getContentPane().add(informationScrollPane, gbc_scrollPane);
 
 		informationTable = new JTable();
 		informationTable.setModel(new DefaultTableModel(new Object[][] {},
-				new String[] { "Type", "Title", "Number of Times Seen", "Movement" }) {
-			Class[] columnTypes = new Class[] { String.class, String.class, Integer.class, String.class };
+				new String[] { "Type", "Word", "Title", "Number of Times Seen", "Movement" }) {
+			Class[] columnTypes = new Class[] { String.class, String.class, String.class, Integer.class, String.class };
 
 			public Class getColumnClass(int columnIndex) {
 				return columnTypes[columnIndex];
@@ -263,6 +221,17 @@ public class AnalyzeNews extends JFrame {
 
 		informationScrollPane.setViewportView(informationTable);
 		informationTableModel = (DefaultTableModel) informationTable.getModel();
+
+		JScrollPane twitterScrollPane = new JScrollPane();
+		GridBagConstraints gbc_twitterScrollPane = new GridBagConstraints();
+		gbc_twitterScrollPane.insets = new Insets(0, 0, 5, 5);
+		gbc_twitterScrollPane.fill = GridBagConstraints.BOTH;
+		gbc_twitterScrollPane.gridx = 1;
+		gbc_twitterScrollPane.gridy = 4;
+		getContentPane().add(twitterScrollPane, gbc_twitterScrollPane);
+
+		twitterTextArea = new JTextPane();
+		twitterScrollPane.setViewportView(twitterTextArea);
 
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -599,9 +568,6 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void writeToCacheFile(String write, String symbol, String title) throws IOException {
-		if (title.length() > 144)
-			title = title.substring(0, 140);
-
 		String filePath = (MainFrame.GLOBALPATH + File.separator + "cache" + File.separator + symbol + File.separator
 				+ cleanText(title.replaceAll("\"", "")) + ".txt");
 
@@ -828,31 +794,36 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void numberOfTimesSeenPressRelease() {
-		String search = informationTextField.getText();
+		String[] search = informationTextField.getText().split(" ");
 		Map<String, Integer> result = new HashMap<String, Integer>();
 		informationTableModel.setRowCount(0);
 
 		for (String headline : newsHeadlineAndContent.keySet()) {
-			if (newsHeadlineAndContent.get(headline).contains(search)) {
-				result = wordFrequency(newsHeadlineAndContent.get(headline));
-				informationTableModel.addRow(new Object[] { "Press Release", newsHeadlineAndContent.get(headline),
-						result.get(search), headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
+			for (String word : search) {
+				if (newsHeadlineAndContent.get(headline).contains(word)) {
+					result = wordFrequency(newsHeadlineAndContent.get(headline));
+					informationTableModel.addRow(new Object[] { "Press Release", word,
+							newsHeadlineAndContent.get(headline), result.get(word),
+							headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
 
+				}
 			}
 		}
 	}
 
 	private void numberOfTimesSeenTwitter() {
-		String search = informationTextField.getText();
+		String[] search = informationTextField.getText().split(" ");
 		Map<String, Integer> result = new HashMap<String, Integer>();
 
 		// number of times seen for tweets
 		for (String tweet : tweetHeadlineAndContent.keySet()) {
-			result = wordFrequency(tweet);
-			if (result.get(search) != null) {
-				informationTableModel.addRow(
-						new Object[] { "Tweet", tweet, result.get(search), tweetHeadlineAndContent.get(tweet) });
+			for (String word : search) {
+				result = wordFrequency(tweet);
+				if (result.get(word) != null) {
+					informationTableModel.addRow(new Object[] { "Tweet", word, tweet, result.get(word),
+							tweetHeadlineAndContent.get(tweet) });
 
+				}
 			}
 		}
 	}
