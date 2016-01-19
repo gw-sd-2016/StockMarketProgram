@@ -364,7 +364,7 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		public void run() {
-			
+
 			Document doc = null;
 
 			try {
@@ -473,10 +473,10 @@ public class AnalyzeNews extends JFrame {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-			
+
 			addDefaultPieChart(MainFrame.searchBox.getText().toUpperCase());
 			addBarChart();
-			
+
 		}
 	};
 
@@ -721,9 +721,13 @@ public class AnalyzeNews extends JFrame {
 
 	// FIX ARGUMENTS
 	public void printMap(Map<String, Integer> map, JLabel printArea) {
-		twitterNegLabel.setText("Negative: " + map.get("negative") + " ");
-		twitterPosLabel.setText("Positive: " + map.get("positive") + " ");
-		twitterNeutLabel.setText("Neutral: " + map.get("neutral") + " ");
+		int negative = map.get("negative") != null ? map.get("negative") : 0;
+		int positive = map.get("positive") != null ? map.get("positive") : 0;
+		int neutral = map.get("neutral") != null ? map.get("neutral") : 0;
+
+		twitterNegLabel.setText("Negative: " + negative + " ");
+		twitterPosLabel.setText("Positive: " + positive + " ");
+		twitterNeutLabel.setText("Neutral: " + neutral + " ");
 	}
 
 	private void appendToPane(JTextPane tp, String msg, Color c) {
