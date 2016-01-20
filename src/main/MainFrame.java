@@ -594,21 +594,21 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		return new String[] { s.substring(0, index), s.substring(index + 1) };
 	}
 
-	private static int returnHeadLineYear(String xlo) throws ParseException {
+	public static int returnHeadLineYear(String xlo) throws ParseException {
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("yyyy");
 		return Integer.parseInt(newFormat.format(date));
 	}
 
-	private static int returnHeadLineDay(String xlo) throws ParseException {
+	public static int returnHeadLineDay(String xlo) throws ParseException {
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("d");
 		return Integer.parseInt(newFormat.format(date));
 	}
 
-	private static int returnHeadLineMonth(String xlo) throws ParseException {
+	public static int returnHeadLineMonth(String xlo) throws ParseException {
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("MM");
