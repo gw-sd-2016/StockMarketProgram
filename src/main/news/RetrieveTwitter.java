@@ -1,6 +1,9 @@
 package main.news;
 
+import java.util.Date;
 import java.util.Map;
+import java.util.TreeMap;
+
 import popupmessages.CheckInternet;
 import twitter4j.Query;
 import twitter4j.QueryResult;
@@ -17,6 +20,7 @@ public class RetrieveTwitter {
 	private static final int MAX_QUERIES = 5;
 	private static final int TWEETS_PER_QUERY = 100;
 	private static String SEARCH_TERM;
+	public static TreeMap<Date, String> tweetTimeAndContent = new TreeMap<Date, String>();
 
 	public RetrieveTwitter(String symbol) {
 		SEARCH_TERM = "$" + symbol;
@@ -113,6 +117,7 @@ public class RetrieveTwitter {
 					}
 
 					result += cleanCharacters(s.getText()) + ". ";
+					tweetTimeAndContent.put(s.getCreatedAt(), cleanCharacters(s.getText()));
 
 				}
 

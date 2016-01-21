@@ -4,10 +4,11 @@ import java.awt.Color;
 import java.awt.GradientPaint;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.Insets;
-import java.util.List;
 import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -22,14 +23,16 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -39,7 +42,6 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableRowSorter;
 import javax.swing.text.AttributeSet;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
@@ -53,14 +55,21 @@ import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.NumberTickUnit;
+import org.jfree.chart.axis.SymbolAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.category.BarRenderer;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.category.CategoryDataset;
 import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 import org.jfree.data.general.PieDataset;
+import org.jfree.data.xy.DefaultXYDataset;
+import org.jfree.data.xy.XYDataset;
+import org.jfree.data.xy.XYSeries;
 import org.jfree.util.Rotation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -79,14 +88,7 @@ import helpers.ButtonColumn;
 import helpers.PieRenderer;
 import main.MainFrame;
 import popupmessages.CheckInternet;
-import popupmessages.PressReleaseFrequency;
 import popupmessages.ReadNewsContent;
-import popupmessages.TwitterFrequency;
-import javax.swing.JPanel;
-import java.awt.GridLayout;
-import javax.swing.JLabel;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -95,15 +97,16 @@ public class AnalyzeNews extends JFrame {
 															// summary
 	public static String tweetString;
 	private Map<String, String> newsHeadlineAndContent = new HashMap<String, String>();
-	private Map<String, String> tweetHeadlineAndContent = new HashMap<String, String>();
+	private Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private ChartPanel pieChartPanel;
+	private ChartPanel barChartPanel;
+	private ChartPanel twitterChartPanel;
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
-	private JTextPane twitterTextArea;
+	private GridBagConstraints gbc_twitterChartPanel;
 	private JScrollPane headlineScrollPane;
 	private JTable headLineTable;
-	private ChartPanel barChartPanel;
 
 	public AnalyzeNews() throws IOException {
 
@@ -150,7 +153,7 @@ public class AnalyzeNews extends JFrame {
 		headLineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
 			public void valueChanged(ListSelectionEvent event) {
 				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
-				System.out.println(cleanText(fileTitle));
+				// System.out.println(cleanText(fileTitle));
 
 				try {
 					addPieChart(fileTitle);
@@ -222,16 +225,14 @@ public class AnalyzeNews extends JFrame {
 		informationScrollPane.setViewportView(informationTable);
 		informationTableModel = (DefaultTableModel) informationTable.getModel();
 
-		JScrollPane twitterScrollPane = new JScrollPane();
-		GridBagConstraints gbc_twitterScrollPane = new GridBagConstraints();
-		gbc_twitterScrollPane.insets = new Insets(0, 0, 5, 5);
-		gbc_twitterScrollPane.fill = GridBagConstraints.BOTH;
-		gbc_twitterScrollPane.gridx = 1;
-		gbc_twitterScrollPane.gridy = 4;
-		getContentPane().add(twitterScrollPane, gbc_twitterScrollPane);
+		twitterChartPanel = new ChartPanel((JFreeChart) null);
 
-		twitterTextArea = new JTextPane();
-		twitterScrollPane.setViewportView(twitterTextArea);
+		gbc_twitterChartPanel = new GridBagConstraints();
+		gbc_twitterChartPanel.insets = new Insets(0, 0, 5, 5);
+		gbc_twitterChartPanel.fill = GridBagConstraints.BOTH;
+		// gbc_twitterChartPanel.gridwidth = 2;
+		gbc_twitterChartPanel.gridx = 1;
+		gbc_twitterChartPanel.gridy = 4;
 
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -603,7 +604,7 @@ public class AnalyzeNews extends JFrame {
 			String singleResult = "";
 			String fullResult = "";
 
-			appendToPane(twitterTextArea, "Loading . . .", Color.BLACK);
+			// appendToPane(twitterTextArea, "Loading . . .", Color.BLACK);
 
 			Properties props = new Properties();
 			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
@@ -611,7 +612,7 @@ public class AnalyzeNews extends JFrame {
 			Annotation annotation = pipeline.process(text);
 			List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
 
-			twitterTextArea.setText("");
+			// twitterTextArea.setText("");
 
 			for (CoreMap sentence : sentences) {
 				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
@@ -619,22 +620,36 @@ public class AnalyzeNews extends JFrame {
 				singleResult = sentiment + "\t" + sentence + '\n';
 				fullResult += sentiment + "\t" + sentence + '\n';
 
-				if (sentiment.equals("Positive")) {
-					appendToPane(twitterTextArea, singleResult, Color.BLACK);
-				} else if (sentiment.equals("Negative")) {
-					appendToPane(twitterTextArea, singleResult, Color.RED);
-				} else {
-					appendToPane(twitterTextArea, singleResult, Color.GRAY);
-				}
+				// if (sentiment.equals("Positive")) {
+				// appendToPane(twitterTextArea, singleResult, Color.BLACK);
+				// } else if (sentiment.equals("Negative")) {
+				// appendToPane(twitterTextArea, singleResult, Color.RED);
+				// } else {
+				// appendToPane(twitterTextArea, singleResult, Color.GRAY);
+				// }
 
-				tweetHeadlineAndContent.put(sentence.toString(), sentiment);
+				tweetSentimentAndContent.put(sentence.toString(), sentiment);
 			}
 
 			wordFrequency(fullResult, twitterPosLabel);
 
+			final XYDataset dataset = createDatasetTwitter(tweetSentimentAndContent);
+			JFreeChart chart = null;
+			try {
+				chart = createChartTwitter(dataset, twitter.tweetTimeAndContent);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			twitterChartPanel = new ChartPanel(chart);
+
+			getContentPane().add(twitterChartPanel, gbc_twitterChartPanel);
+			getContentPane().revalidate();
+			getContentPane().repaint();
+
 			numberOfTimesSeenTwitter();
 
-			twitterTextArea.setCaretPosition(0);
+			// twitterTextArea.setCaretPosition(0);
 
 		}
 	};
@@ -657,6 +672,104 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		return messageLinks;
+	}
+
+	private XYDataset createDatasetTwitter(Map<String, String> tweetSentiment) {
+		// sentence - sentement
+
+		DefaultXYDataset result = new DefaultXYDataset();
+
+		XYSeries series1 = new XYSeries("Words");
+
+		int numberTweet = 0;
+
+		for (String sentence : tweetSentiment.keySet()) {
+			if (tweetSentiment.get(sentence).equals("Positive")) {
+				series1.add(1, numberTweet);
+			} else if (tweetSentiment.get(sentence).equals("Negative")) {
+				series1.add(-1, numberTweet);
+			} else if (tweetSentiment.get(sentence).equals("Neutral")) {
+				series1.add(0, numberTweet);
+			}
+
+			numberTweet++;
+		}
+
+		result.addSeries(getTitle(), series1.toArray());
+
+		return result;
+
+	}
+
+	private JFreeChart createChartTwitter(final XYDataset dataset, Map<Date, String> tweetDateAndContent)
+			throws ParseException {
+
+		String fromDate = "";
+		String toDate = "";
+
+		int x = 0;
+		for (Date d : tweetDateAndContent.keySet()) {
+			if (x == 0) {
+				fromDate = d.toString();
+			} else if (x == tweetDateAndContent.size() - 1) {
+				toDate = d.toString();
+
+			}
+
+			x++;
+		}
+
+		final JFreeChart chart = ChartFactory.createXYLineChart(fromDate + " - " + toDate, // chart
+																							// title
+				"Sentiment", // x axis label
+				"Y", // y axis label
+				dataset, // data
+				PlotOrientation.HORIZONTAL, true, // include legend
+				true, // tooltips
+				false // urls
+		);
+
+		XYPlot plot = (XYPlot) chart.getPlot();
+		plot.setForegroundAlpha(0.5f);
+
+		SymbolAxis rangeAxis = new SymbolAxis("Time", listOfDates(tweetDateAndContent));
+
+		rangeAxis.setTickUnit(new NumberTickUnit(1));
+		rangeAxis.setRange(0, listOfDates(tweetDateAndContent).length);
+		plot.setRangeAxis(rangeAxis);
+
+		final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
+		renderer.setSeriesLinesVisible(0, false);
+		renderer.setSeriesShapesVisible(1, false);
+		plot.setRenderer(renderer);
+
+		return chart;
+
+	}
+
+	public String returnTime(String fix) {
+		String splitter[] = fix.split(" ");
+		return splitter[3];
+	}
+
+	private String[] listOfDates(Map<Date, String> tweetDateAndContent) throws ParseException {
+		ArrayList<String> result = new ArrayList<String>();
+
+		int x = 0;
+		System.out.println(tweetDateAndContent.keySet().size());
+
+		for (Date d : tweetDateAndContent.keySet()) {
+			SimpleDateFormat oldFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss z yyyy");
+			Date date = oldFormat.parse(d.toString());
+			SimpleDateFormat newFormat = new SimpleDateFormat("yyyy-MM-dd");
+			result.add(newFormat.format(date));
+		}
+
+		String[] stockArr = new String[result.size()];
+		stockArr = result.toArray(stockArr);
+
+		return stockArr;
+
 	}
 
 	public Map<String, Integer> wordFrequency(String xlo, JLabel printArea) {
@@ -816,12 +929,12 @@ public class AnalyzeNews extends JFrame {
 		Map<String, Integer> result = new HashMap<String, Integer>();
 
 		// number of times seen for tweets
-		for (String tweet : tweetHeadlineAndContent.keySet()) {
+		for (String tweet : tweetSentimentAndContent.keySet()) {
 			for (String word : search) {
 				result = wordFrequency(tweet);
 				if (result.get(word) != null) {
 					informationTableModel.addRow(new Object[] { "Tweet", word, tweet, result.get(word),
-							tweetHeadlineAndContent.get(tweet) });
+							tweetSentimentAndContent.get(tweet) });
 
 				}
 			}
