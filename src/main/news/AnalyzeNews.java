@@ -70,6 +70,7 @@ import org.jfree.data.general.PieDataset;
 import org.jfree.data.xy.DefaultXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
+import org.jfree.ui.RectangleInsets;
 import org.jfree.util.Rotation;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -637,8 +638,9 @@ public class AnalyzeNews extends JFrame {
 			JFreeChart chart = null;
 			try {
 				chart = createChartTwitter(dataset, twitter.tweetTimeAndContent);
+				chart.setBackgroundPaint(new Color(255, 255, 255, 0));
+				chart.setPadding(new RectangleInsets(10, 5, 5, 5));
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			twitterChartPanel = new ChartPanel(chart);
@@ -850,6 +852,8 @@ public class AnalyzeNews extends JFrame {
 	private JFreeChart createPieChart(final PieDataset dataset, String title) {
 
 		final JFreeChart chart = ChartFactory.createPieChart3D(title, dataset, true, true, false);
+		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
+		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
 		final PiePlot3D plot = (PiePlot3D) chart.getPlot();
 
@@ -881,6 +885,8 @@ public class AnalyzeNews extends JFrame {
 				"Category", "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		chart.setBackgroundPaint(Color.white);
+		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
+		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
 		final CategoryPlot plot = chart.getCategoryPlot();
 		plot.setBackgroundPaint(Color.lightGray);
@@ -893,10 +899,8 @@ public class AnalyzeNews extends JFrame {
 		final BarRenderer renderer = (BarRenderer) plot.getRenderer();
 		renderer.setDrawBarOutline(false);
 
-		final GradientPaint gp0 = new GradientPaint(0.0f, 0.0f, Color.blue, 0.0f, 0.0f, Color.lightGray);
 		final GradientPaint gp1 = new GradientPaint(0.0f, 0.0f, Color.green, 0.0f, 0.0f, Color.lightGray);
 		final GradientPaint gp2 = new GradientPaint(0.0f, 0.0f, Color.red, 0.0f, 0.0f, Color.lightGray);
-		renderer.setSeriesPaint(0, gp0);
 		renderer.setSeriesPaint(1, gp1);
 		renderer.setSeriesPaint(2, gp2);
 
