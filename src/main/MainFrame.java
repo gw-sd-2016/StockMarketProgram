@@ -422,6 +422,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 				}
 			}
 		}
+		
 		logger.info("Finished creating date volume chart");
 
 		return chart;
