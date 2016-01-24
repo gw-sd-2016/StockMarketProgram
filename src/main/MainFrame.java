@@ -139,9 +139,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 	 * @throws IOException
 	 */
 	public MainFrame() throws IOException {
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		//setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setBounds(100, 100, 1147, 399);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int x = (int) ((dimension.getWidth() - getWidth()) / 2);
 		int y = (int) ((dimension.getHeight() - getHeight()) / 2);
