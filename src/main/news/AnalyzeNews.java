@@ -108,6 +108,7 @@ public class AnalyzeNews extends JFrame {
 	private GridBagConstraints gbc_twitterChartPanel;
 	private JScrollPane headlineScrollPane;
 	private JTable headLineTable;
+	private String symbol = MainFrame.searchBox.getText();
 
 	public AnalyzeNews() throws IOException {
 
@@ -340,7 +341,7 @@ public class AnalyzeNews extends JFrame {
 
 			try {
 				doc = Jsoup
-						.connect("http://finance.yahoo.com/q/p?s=" + MainFrame.searchBox.getText() + "+Press+Releases")
+						.connect("http://finance.yahoo.com/q/p?s=" + symbol + "+Press+Releases")
 						.get();
 
 			} catch (IOException e) {
@@ -349,7 +350,7 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			int numberOfPRs = 0;
-			boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText());
+			boolean cacheISNeeded = cacheNeeded(symbol);
 
 			// this will get the days volume of press release and the next 3
 			// days (if not what is available)
@@ -407,7 +408,7 @@ public class AnalyzeNews extends JFrame {
 				}
 			}
 
-			boolean fileExists = fileNameExistsInDirectory(MainFrame.searchBox.getText());
+			boolean fileExists = fileNameExistsInDirectory(symbol);
 
 			int numberOfFiles = 0;
 
@@ -417,7 +418,7 @@ public class AnalyzeNews extends JFrame {
 
 						URL url = new URL(s);
 						String text = ArticleExtractor.INSTANCE.getText(url);
-						writeToCacheFile(text, MainFrame.searchBox.getText(), headlinesForFiles.get(numberOfFiles++));
+						writeToCacheFile(text, symbol, headlinesForFiles.get(numberOfFiles++));
 					} catch (IOException e) {
 						new CheckInternet();
 					} catch (BoilerpipeProcessingException e) {
@@ -432,7 +433,7 @@ public class AnalyzeNews extends JFrame {
 			numberOfFiles = 0;
 
 			try {
-				new TopicIdentification(MainFrame.searchBox.getText());
+				new TopicIdentification(symbol);
 			} catch (ClassNotFoundException e) {
 				new CheckInternet();
 			} catch (IOException e) {
@@ -440,12 +441,12 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			try {
-				new SignificantPhrases(new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText()));
+				new SignificantPhrases(new File(MainFrame.GLOBALPATH + "cache\\" + symbol));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 
-			addDefaultPieChart(MainFrame.searchBox.getText().toUpperCase());
+			addDefaultPieChart(symbol.toUpperCase());
 			addBarChart();
 
 		}
@@ -505,9 +506,9 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void pullDataFromDirectory() throws IOException {
-		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + MainFrame.searchBox.getText());
+		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
 		File[] listOfFiles = folder.listFiles();
-		if (!cacheNeeded(MainFrame.searchBox.getText())) {
+		if (!cacheNeeded(symbol)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				File file = listOfFiles[i];
 				if (file.isFile() && file.getName().endsWith(".txt")) {
@@ -593,7 +594,7 @@ public class AnalyzeNews extends JFrame {
 
 	Runnable retrieveTwitter = new Runnable() {
 		public void run() {
-			RetrieveTwitter twitter = new RetrieveTwitter(MainFrame.searchBox.getText());
+			RetrieveTwitter twitter = new RetrieveTwitter(symbol);
 
 			// appendToPane(twitterTextArea, twitter.retrieveTweets(),
 			// Color.BLACK);
@@ -828,7 +829,7 @@ public class AnalyzeNews extends JFrame {
 
 		final DefaultPieDataset result = new DefaultPieDataset();
 
-		boolean cacheISNeeded = cacheNeeded(MainFrame.searchBox.getText());
+		boolean cacheISNeeded = cacheNeeded(symbol);
 
 		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
 			result.setValue(TopicIdentification.CATEGORIES[i],
