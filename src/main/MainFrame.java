@@ -39,7 +39,7 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
@@ -66,6 +66,7 @@ import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.IntervalXYDataset;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.ui.RectangleEdge;
+import org.jfree.ui.RectangleInsets;
 import org.jfree.ui.TextAnchor;
 import org.jfree.util.ShapeUtilities;
 import org.jsoup.Jsoup;
@@ -111,21 +112,19 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 	 * 
 	 * @throws IOException
 	 * @throws InterruptedException
+	 * @throws UnsupportedLookAndFeelException
+	 * @throws IllegalAccessException
+	 * @throws InstantiationException
+	 * @throws ClassNotFoundException
 	 */
-	public static void main(String[] args) throws IOException, InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException,
+			InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 		BasicConfigurator.configure();
 
 		logger.info("Application starting");
 
-		try {
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (Exception e) {
-		}
+		UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
+
 		try {
 			MainFrame main = new MainFrame();
 			main.setTitle("Stock Analyzer");
@@ -373,6 +372,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 
 		String title = "";
 		JFreeChart chart = ChartFactory.createTimeSeriesChart(title, "Date", "Volume", priceData, true, true, false);
+		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
+		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
+
 		XYPlot plot = (XYPlot) chart.getPlot();
 		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
 		rangeAxis1.setLowerMargin(0);
@@ -422,7 +424,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 				}
 			}
 		}
-		
+
 		logger.info("Finished creating date volume chart");
 
 		return chart;
