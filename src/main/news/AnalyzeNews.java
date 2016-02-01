@@ -38,8 +38,6 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.SwingConstants;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.AttributeSet;
@@ -151,19 +149,6 @@ public class AnalyzeNews extends JFrame {
 		headLineTable.getColumnModel().getColumn(2).setPreferredWidth(225);
 		headLineTable.getColumnModel().getColumn(4).setPreferredWidth(224);
 		headLineTable.getColumnModel().getColumn(5).setPreferredWidth(204);
-
-		headLineTable.getSelectionModel().addListSelectionListener(new ListSelectionListener() {
-			public void valueChanged(ListSelectionEvent event) {
-				String fileTitle = headLineTable.getValueAt(headLineTable.getSelectedRow(), 1).toString() + ".txt";
-				// System.out.println(cleanText(fileTitle));
-
-				try {
-					addPieChart(fileTitle);
-				} catch (Exception e) {
-					new CheckInternet();
-				}
-			}
-		});
 
 		DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
 		leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
@@ -340,9 +325,7 @@ public class AnalyzeNews extends JFrame {
 			Document doc = null;
 
 			try {
-				doc = Jsoup
-						.connect("http://finance.yahoo.com/q/p?s=" + symbol + "+Press+Releases")
-						.get();
+				doc = Jsoup.connect("http://finance.yahoo.com/q/p?s=" + symbol + "+Press+Releases").get();
 
 			} catch (IOException e) {
 
@@ -446,7 +429,14 @@ public class AnalyzeNews extends JFrame {
 				e.printStackTrace();
 			}
 
-			addDefaultPieChart(symbol.toUpperCase());
+			String fileTitle = headLineTable.getValueAt(1, 1).toString() + ".txt";
+
+			try {
+				addPieChart(fileTitle);
+			} catch (Exception e) {
+				new CheckInternet();
+			}
+
 			addBarChart();
 
 		}
@@ -485,18 +475,7 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		final PieDataset dataset = createDataSetForPieChart(title);
-		final JFreeChart chart = createPieChart(dataset, title);
-
-		pieChartPanel = new ChartPanel(chart);
-
-		getContentPane().add(pieChartPanel, gbc_pieChartPanel);
-		getContentPane().revalidate();
-		getContentPane().repaint();
-	}
-
-	private void addDefaultPieChart(String title) {
-		final PieDataset dataset = createDefaultDataSetForPiechart(title);
-		final JFreeChart chart = createPieChart(dataset, title);
+		final JFreeChart chart = createPieChart(dataset);
 
 		pieChartPanel = new ChartPanel(chart);
 
@@ -850,9 +829,9 @@ public class AnalyzeNews extends JFrame {
 		return result;
 	}
 
-	private JFreeChart createPieChart(final PieDataset dataset, String title) {
+	private JFreeChart createPieChart(final PieDataset dataset) {
 
-		final JFreeChart chart = ChartFactory.createPieChart3D(title, dataset, true, true, false);
+		final JFreeChart chart = ChartFactory.createPieChart3D(null, dataset, true, true, false);
 		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
 		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
