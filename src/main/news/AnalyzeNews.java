@@ -6,6 +6,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -41,6 +42,9 @@ import javax.swing.SwingConstants;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.AttributeSet;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.DefaultHighlighter;
+import javax.swing.text.Highlighter;
 import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
@@ -84,10 +88,13 @@ import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
+import helpers.IntegerPair;
 import helpers.PieRenderer;
 import main.MainFrame;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -185,14 +192,100 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(informationTextField, gbc_textField);
 
 		informationScrollPane = new JScrollPane();
-		GridBagConstraints gbc_scrollPane = new GridBagConstraints();
-		gbc_scrollPane.insets = new Insets(0, 0, 5, 0);
-		gbc_scrollPane.fill = GridBagConstraints.BOTH;
-		gbc_scrollPane.gridx = 2;
-		gbc_scrollPane.gridy = 2;
-		getContentPane().add(informationScrollPane, gbc_scrollPane);
+		informationScrollPane.setEnabled(false);
+		GridBagConstraints gbc_extendedWordScrollPane = new GridBagConstraints();
+		gbc_extendedWordScrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_extendedWordScrollPane.fill = GridBagConstraints.BOTH;
+		gbc_extendedWordScrollPane.gridx = 2;
+		gbc_extendedWordScrollPane.gridy = 2;
+		getContentPane().add(informationScrollPane, gbc_extendedWordScrollPane);
 
 		informationTable = new JTable();
+		informationTable.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				ArrayList<IntegerPair> startEndCharacterPairs = new ArrayList<IntegerPair>();
+				JTable table = (JTable) arg0.getSource();
+				Point p = arg0.getPoint();
+				int row = table.rowAtPoint(p);
+
+				if (arg0.getClickCount() == 2) {
+					String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
+					String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
+					String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
+
+					Properties props = new Properties();
+					props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
+
+					StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+					Annotation annotation = pipeline.process(prContent);
+					List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+
+					int lastCharacter = 0;
+
+					for (CoreMap sentence : sentences) {
+
+						String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+						/**
+						 * 
+						 * 
+						 * 
+						 * 
+						 * 
+						 * THIS CAN BE TAKEN OUT -- DONT NEED TO APPEND EVERY
+						 * TIME SINCE HIGHLITHER WILL TAKE CARE OF IT
+						 */
+						if (sentence.toString().toLowerCase().contains(wordToSearch)) {
+							if (sentiment.equals("Negative")) {
+								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+								int startingCharacter = lastCharacter;
+								lastCharacter += sentence.toString().length();
+								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
+							} else if (sentiment.equals("Very negative")) {
+								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+								int startingCharacter = lastCharacter;
+								lastCharacter += sentence.toString().length();
+								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
+							} else if (sentiment.equals("Positive")) {
+								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+								int startingCharacter = lastCharacter;
+								lastCharacter += sentence.toString().length();
+								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
+							} else if (sentiment.equals("Very positive")) {
+								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+								int startingCharacter = lastCharacter;
+								lastCharacter += sentence.toString().length();
+								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
+							} else if (sentiment.equals("Neutral")) {
+								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+								int startingCharacter = lastCharacter;
+								lastCharacter += sentence.toString().length();
+								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
+							}
+
+						} else {
+							appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
+							lastCharacter += sentence.toString().length();
+						}
+					}
+
+					Color highlightRed = new Color(242, 44, 67);
+					Color highlightGreen = new Color(44, 242, 153);
+					Highlighter.HighlightPainter mypainter = new HighlightPainter(highlightGreen);
+					Highlighter highlightWord = extendedTextPane.getHighlighter();
+
+					try {
+						for (IntegerPair x : startEndCharacterPairs) {
+							highlightWord.addHighlight(x.returnStart(), x.returnEnd(), mypainter);
+						}
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		});
+
+		informationTable.setEnabled(false);
 		informationTable.setModel(new DefaultTableModel(new Object[][] {},
 				new String[] { "Type", "Word", "Title", "Number of Times Seen", "Movement" }) {
 			Class[] columnTypes = new Class[] { String.class, String.class, String.class, Integer.class, String.class };
@@ -220,6 +313,17 @@ public class AnalyzeNews extends JFrame {
 		// gbc_twitterChartPanel.gridwidth = 2;
 		gbc_twitterChartPanel.gridx = 1;
 		gbc_twitterChartPanel.gridy = 4;
+
+		extendedWordScrollPane = new JScrollPane();
+		GridBagConstraints gbc_extendedWordScrollPane1 = new GridBagConstraints();
+		gbc_extendedWordScrollPane1.insets = new Insets(0, 0, 5, 0);
+		gbc_extendedWordScrollPane1.fill = GridBagConstraints.BOTH;
+		gbc_extendedWordScrollPane1.gridx = 2;
+		gbc_extendedWordScrollPane1.gridy = 4;
+		getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
+
+		extendedTextPane = new JTextPane();
+		extendedWordScrollPane.setViewportView(extendedTextPane);
 
 		panel = new JPanel();
 		GridBagConstraints gbc_panel = new GridBagConstraints();
@@ -575,17 +679,9 @@ public class AnalyzeNews extends JFrame {
 		public void run() {
 			RetrieveTwitter twitter = new RetrieveTwitter(symbol);
 
-			// appendToPane(twitterTextArea, twitter.retrieveTweets(),
-			// Color.BLACK);
-			// ArrayList<String> tweets = new ArrayList<String>();
-
-			// String[] myList = twitter.retrieveTweets().split("\n");
-
 			String text = twitter.retrieveTweets();
 			String singleResult = "";
 			String fullResult = "";
-
-			// appendToPane(twitterTextArea, "Loading . . .", Color.BLACK);
 
 			Properties props = new Properties();
 			props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
@@ -593,21 +689,11 @@ public class AnalyzeNews extends JFrame {
 			Annotation annotation = pipeline.process(text);
 			List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
 
-			// twitterTextArea.setText("");
-
 			for (CoreMap sentence : sentences) {
 				String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
 
 				singleResult = sentiment + "\t" + sentence + '\n';
 				fullResult += sentiment + "\t" + sentence + '\n';
-
-				// if (sentiment.equals("Positive")) {
-				// appendToPane(twitterTextArea, singleResult, Color.BLACK);
-				// } else if (sentiment.equals("Negative")) {
-				// appendToPane(twitterTextArea, singleResult, Color.RED);
-				// } else {
-				// appendToPane(twitterTextArea, singleResult, Color.GRAY);
-				// }
 
 				tweetSentimentAndContent.put(sentence.toString(), sentiment);
 			}
@@ -643,6 +729,8 @@ public class AnalyzeNews extends JFrame {
 	private JTextComponent informationTextField;
 	private JScrollPane informationScrollPane;
 	private JTable informationTable;
+	private JScrollPane extendedWordScrollPane;
+	private JTextPane extendedTextPane;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
@@ -899,8 +987,7 @@ public class AnalyzeNews extends JFrame {
 			for (String word : search) {
 				if (newsHeadlineAndContent.get(headline).contains(word)) {
 					result = wordFrequency(newsHeadlineAndContent.get(headline));
-					informationTableModel.addRow(new Object[] { "Press Release", word,
-							newsHeadlineAndContent.get(headline), result.get(word),
+					informationTableModel.addRow(new Object[] { "Press Release", word, headline, result.get(word),
 							headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
 
 				}
@@ -962,5 +1049,11 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		return myMap;
+	}
+
+	class HighlightPainter extends DefaultHighlighter.DefaultHighlightPainter {
+		public HighlightPainter(Color arg0) {
+			super(arg0);
+		}
 	}
 }
