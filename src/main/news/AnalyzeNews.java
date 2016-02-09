@@ -5,18 +5,25 @@ import java.awt.GradientPaint;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.StringReader;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.text.BreakIterator;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -25,12 +32,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -83,8 +93,11 @@ import analyzers.TopicIdentification;
 import de.l3s.boilerpipe.BoilerpipeProcessingException;
 import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import edu.stanford.nlp.ling.CoreAnnotations;
+import edu.stanford.nlp.ling.HasWord;
+import edu.stanford.nlp.ling.Sentence;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
+import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
@@ -93,8 +106,6 @@ import helpers.PieRenderer;
 import main.MainFrame;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -204,82 +215,96 @@ public class AnalyzeNews extends JFrame {
 		informationTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent arg0) {
-				ArrayList<IntegerPair> startEndCharacterPairs = new ArrayList<IntegerPair>();
 				JTable table = (JTable) arg0.getSource();
 				Point p = arg0.getPoint();
 				int row = table.rowAtPoint(p);
 
 				if (arg0.getClickCount() == 2) {
+					extendedTextPane.setText("");
 					String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
 					String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
 					String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
-
-					Properties props = new Properties();
-					props.setProperty("annotators", "tokenize, ssplit, pos, lemma, parse, sentiment");
-
-					StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-					Annotation annotation = pipeline.process(prContent);
-					List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
-
-					int lastCharacter = 0;
-
-					for (CoreMap sentence : sentences) {
-
-						String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-						/**
-						 * 
-						 * 
-						 * 
-						 * 
-						 * 
-						 * THIS CAN BE TAKEN OUT -- DONT NEED TO APPEND EVERY
-						 * TIME SINCE HIGHLITHER WILL TAKE CARE OF IT
-						 */
-						if (sentence.toString().toLowerCase().contains(wordToSearch)) {
-							if (sentiment.equals("Negative")) {
-								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-								int startingCharacter = lastCharacter;
-								lastCharacter += sentence.toString().length();
-								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
-							} else if (sentiment.equals("Very negative")) {
-								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-								int startingCharacter = lastCharacter;
-								lastCharacter += sentence.toString().length();
-								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
-							} else if (sentiment.equals("Positive")) {
-								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-								int startingCharacter = lastCharacter;
-								lastCharacter += sentence.toString().length();
-								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
-							} else if (sentiment.equals("Very positive")) {
-								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-								int startingCharacter = lastCharacter;
-								lastCharacter += sentence.toString().length();
-								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
-							} else if (sentiment.equals("Neutral")) {
-								appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-								int startingCharacter = lastCharacter;
-								lastCharacter += sentence.toString().length();
-								startEndCharacterPairs.add(new IntegerPair(startingCharacter, lastCharacter));
-							}
-
-						} else {
-							appendToPane(extendedTextPane, sentence.toString(), Color.BLACK);
-							lastCharacter += sentence.toString().length();
-						}
-					}
+					String sentenceList = "";
 
 					Color highlightRed = new Color(242, 44, 67);
 					Color highlightGreen = new Color(44, 242, 153);
-					Highlighter.HighlightPainter mypainter = new HighlightPainter(highlightGreen);
-					Highlighter highlightWord = extendedTextPane.getHighlighter();
+					Color highlightGray = new Color(198, 204, 201);
 
-					try {
-						for (IntegerPair x : startEndCharacterPairs) {
-							highlightWord.addHighlight(x.returnStart(), x.returnEnd(), mypainter);
+					appendToPane(extendedTextPane, prContent, Color.BLACK);
+
+					Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent,
+							wordToSearch);
+
+					// put sentences back together for the coreMap to sort it
+					for (String sentence : sentencesToReview.keySet()) {
+						sentenceList += sentence + " ";
+					}
+
+					Properties props = new Properties();
+					props.setProperty("annotators", "tokenize, ssplit, pos,lemma, parse, sentiment");
+
+					StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+					Annotation annotation = pipeline.process(sentenceList);
+					List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+
+					for (CoreMap sentence : sentences) {
+						String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+						String sentenceToSearch = sentence.toString();
+
+						Highlighter.HighlightPainter paintGreen = new HighlightPainter(highlightGreen);
+						Highlighter.HighlightPainter paintRed = new HighlightPainter(highlightRed);
+						Highlighter.HighlightPainter paintGrey = new HighlightPainter(highlightGray);
+						Highlighter highlightWord = extendedTextPane.getHighlighter();
+
+						if (sentiment.equals("Negative")) {
+							int start = sentencesToReview.get(sentenceToSearch).returnStart();
+							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+							try {
+								highlightWord.addHighlight(start, end, paintRed);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+
+						} else if (sentiment.equals("Very negative")) {
+							int start = sentencesToReview.get(sentenceToSearch).returnStart();
+							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+							try {
+								highlightWord.addHighlight(start, end, paintRed);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+
+						} else if (sentiment.equals("Positive")) {
+							int start = sentencesToReview.get(sentenceToSearch).returnStart();
+							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+							try {
+								highlightWord.addHighlight(start, end, paintGreen);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+
+						} else if (sentiment.equals("Very positive")) {
+							int start = sentencesToReview.get(sentenceToSearch).returnStart();
+							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+							try {
+								highlightWord.addHighlight(start, end, paintGreen);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+
+						} else if (sentiment.equals("Neutral")) {
+							int start = sentencesToReview.get(sentenceToSearch).returnStart();
+							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+							try {
+								highlightWord.addHighlight(start, end, paintGrey);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
 						}
-					} catch (BadLocationException e) {
-						e.printStackTrace();
 					}
 				}
 			}
@@ -310,7 +335,6 @@ public class AnalyzeNews extends JFrame {
 		gbc_twitterChartPanel = new GridBagConstraints();
 		gbc_twitterChartPanel.insets = new Insets(0, 0, 5, 5);
 		gbc_twitterChartPanel.fill = GridBagConstraints.BOTH;
-		// gbc_twitterChartPanel.gridwidth = 2;
 		gbc_twitterChartPanel.gridx = 1;
 		gbc_twitterChartPanel.gridy = 4;
 
@@ -342,6 +366,33 @@ public class AnalyzeNews extends JFrame {
 
 		twitterNeutLabel = new JLabel("Neutral: ");
 		panel.add(twitterNeutLabel);
+
+		searchKeyPanel = new JPanel();
+		GridBagConstraints gbc_searchKeyPanel = new GridBagConstraints();
+		gbc_searchKeyPanel.fill = GridBagConstraints.BOTH;
+		gbc_searchKeyPanel.gridx = 2;
+		gbc_searchKeyPanel.gridy = 5;
+		getContentPane().add(searchKeyPanel, gbc_searchKeyPanel);
+
+		// images are 12x11 for consistency
+		BufferedImage redImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightRed.png"));
+		JLabel positiveLabel = new JLabel("Negative");
+		positiveLabel.setIcon(
+				new ImageIcon(new ImageIcon(redImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
+
+		BufferedImage greenImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGreen.png"));
+		JLabel negativeLabel = new JLabel("Positive");
+		negativeLabel.setIcon(
+				new ImageIcon(new ImageIcon(greenImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
+
+		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
+		JLabel neutralLabel = new JLabel("Neutral");
+		neutralLabel.setIcon(
+				new ImageIcon(new ImageIcon(grayImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
+
+		searchKeyPanel.add(positiveLabel);
+		searchKeyPanel.add(negativeLabel);
+		searchKeyPanel.add(neutralLabel);
 
 		gbc_pieChartPanel = new GridBagConstraints();
 		gbc_pieChartPanel.insets = new Insets(0, 0, 5, 0);
@@ -622,6 +673,50 @@ public class AnalyzeNews extends JFrame {
 		return true;
 	}
 
+	private Map<String, IntegerPair> returnSentencesFromPressRelease(String content, String word) {
+		Map<String, IntegerPair> result = new HashMap<String, IntegerPair>();
+		List<IntegerPair> positions = new ArrayList<IntegerPair>();
+		BreakIterator border = BreakIterator.getSentenceInstance(Locale.US);
+
+		border.setText(content);
+
+		int start = border.first();
+
+		for (int end = border.next(); end != BreakIterator.DONE; start = end, end = border.next()) {
+			if (content.toLowerCase().substring(start, end).contains(word)) {
+				if (start != 0) {
+					positions.add(new IntegerPair(start, end));
+				}
+			}
+		}
+
+		Reader reader = new StringReader(content);
+		DocumentPreprocessor dp = new DocumentPreprocessor(reader);
+		List<String> sentenceList = new ArrayList<String>();
+
+		for (List<HasWord> sentence : dp) {
+			String sentenceString = Sentence.listToString(sentence);
+
+			sentenceList.add(sentenceString.toString());
+		}
+
+		int sentenceCounter = 0; // to iterate the integerpair arraylist
+
+		for (String sentence : sentenceList) {
+			if (sentence.toLowerCase().contains(word)) {
+				if (sentenceCounter < positions.size()) {
+					int startPos = positions.get(sentenceCounter).returnStart();
+					int endPos = positions.get(sentenceCounter).returnEnd();
+					result.put(sentence, new IntegerPair(startPos, endPos));
+				}
+
+				sentenceCounter++;
+			}
+		}
+
+		return result;
+	}
+
 	private boolean cacheNeeded(String symbol) {
 		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
 		File theDirectory = new File(directory);
@@ -731,6 +826,7 @@ public class AnalyzeNews extends JFrame {
 	private JTable informationTable;
 	private JScrollPane extendedWordScrollPane;
 	private JTextPane extendedTextPane;
+	private JPanel searchKeyPanel;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
