@@ -1074,18 +1074,35 @@ public class AnalyzeNews extends JFrame {
 		return chart;
 	}
 
+	// return if a word was seen based on frequency map
+	private int wordExists(Map<String, String> content, String headline, String word) {
+		int numberOfTimesSeen = 0;
+		Map<String, Integer> result = new HashMap<String, Integer>();
+		result = wordFrequency(newsHeadlineAndContent.get(headline).toLowerCase());
+
+		try {
+			numberOfTimesSeen = result.get(word);
+		} catch (Exception e) {
+		}
+
+		if (numberOfTimesSeen > 0) {
+			return result.get(word);
+		}
+
+		return 0;
+	}
+
 	private void numberOfTimesSeenPressRelease() {
 		String[] search = informationTextField.getText().split(" ");
-		Map<String, Integer> result = new HashMap<String, Integer>();
 		informationTableModel.setRowCount(0);
 
 		for (String headline : newsHeadlineAndContent.keySet()) {
 			for (String word : search) {
-				if (newsHeadlineAndContent.get(headline).contains(word)) {
-					result = wordFrequency(newsHeadlineAndContent.get(headline));
-					informationTableModel.addRow(new Object[] { "Press Release", word, headline, result.get(word),
-							headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
+				int numberOfTimesSeen = wordExists(newsHeadlineAndContent, headline, word);
 
+				if (numberOfTimesSeen > 0) {
+					informationTableModel.addRow(new Object[] { "Press Release", word, headline, numberOfTimesSeen,
+							headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
 				}
 			}
 		}
