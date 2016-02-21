@@ -125,6 +125,9 @@ public class AnalyzeNews extends JFrame {
 	private JScrollPane headlineScrollPane;
 	private JTable headLineTable;
 	private String symbol = MainFrame.searchBox.getText();
+	private Color highlightRed = new Color(242, 44, 67);
+	private Color highlightGreen = new Color(44, 242, 153);
+	private Color highlightGray = new Color(198, 204, 201);
 
 	public AnalyzeNews() throws IOException {
 
@@ -221,64 +224,23 @@ public class AnalyzeNews extends JFrame {
 
 				if (arg0.getClickCount() == 2) {
 					extendedTextPane.setText("");
-					String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
-					String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
-					String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
-					String sentenceList = "";
+					String type = informationTable.getModel().getValueAt(row, 0).toString();
 
-					Color highlightRed = new Color(242, 44, 67);
-					Color highlightGreen = new Color(44, 242, 153);
-					Color highlightGray = new Color(198, 204, 201);
+					Highlighter.HighlightPainter paintGreen = new HighlightPainter(highlightGreen);
+					Highlighter.HighlightPainter paintRed = new HighlightPainter(highlightRed);
+					Highlighter.HighlightPainter paintGrey = new HighlightPainter(highlightGray);
 
-					appendToPane(extendedTextPane, prContent, Color.BLACK);
+					if (type.equals("Tweet")) {
+						String tweetContent = informationTable.getModel().getValueAt(row, 2).toString();
+						String tweetSentiment = informationTable.getModel().getValueAt(row, 4).toString();
 
-					Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent,
-							wordToSearch);
-
-					// put sentences back together for the coreMap to sort it
-					for (String sentence : sentencesToReview.keySet()) {
-						sentenceList += sentence + " ";
-					}
-
-					Properties props = new Properties();
-					props.setProperty("annotators", "tokenize, ssplit, pos,lemma, parse, sentiment");
-
-					StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-					Annotation annotation = pipeline.process(sentenceList);
-					List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
-
-					for (CoreMap sentence : sentences) {
-						String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-						String sentenceToSearch = sentence.toString();
-
-						Highlighter.HighlightPainter paintGreen = new HighlightPainter(highlightGreen);
-						Highlighter.HighlightPainter paintRed = new HighlightPainter(highlightRed);
-						Highlighter.HighlightPainter paintGrey = new HighlightPainter(highlightGray);
+						appendToPane(extendedTextPane, tweetContent, Color.BLACK);
+						
 						Highlighter highlightWord = extendedTextPane.getHighlighter();
 
-						if (sentiment.equals("Negative")) {
-							int start = sentencesToReview.get(sentenceToSearch).returnStart();
-							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-							try {
-								highlightWord.addHighlight(start, end, paintRed);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-
-						} else if (sentiment.equals("Very negative")) {
-							int start = sentencesToReview.get(sentenceToSearch).returnStart();
-							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-							try {
-								highlightWord.addHighlight(start, end, paintRed);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-
-						} else if (sentiment.equals("Positive")) {
-							int start = sentencesToReview.get(sentenceToSearch).returnStart();
-							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+						if (tweetSentiment.equals("Positive")) {
+							int start = 0;
+							int end = tweetContent.length();
 
 							try {
 								highlightWord.addHighlight(start, end, paintGreen);
@@ -286,23 +248,113 @@ public class AnalyzeNews extends JFrame {
 								e.printStackTrace();
 							}
 
-						} else if (sentiment.equals("Very positive")) {
-							int start = sentencesToReview.get(sentenceToSearch).returnStart();
-							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+						} else if (tweetSentiment.equals("Negative")) {
+							int start = 0;
+							int end = tweetContent.length();
 
 							try {
-								highlightWord.addHighlight(start, end, paintGreen);
+								highlightWord.addHighlight(start, end, paintRed);
 							} catch (BadLocationException e) {
 								e.printStackTrace();
 							}
+						} else if (tweetSentiment.equals("Neutral")) {
+							int start = 0;
+							int end = tweetContent.length();
 
-						} else if (sentiment.equals("Neutral")) {
-							int start = sentencesToReview.get(sentenceToSearch).returnStart();
-							int end = sentencesToReview.get(sentenceToSearch).returnEnd();
 							try {
 								highlightWord.addHighlight(start, end, paintGrey);
 							} catch (BadLocationException e) {
 								e.printStackTrace();
+							}
+
+						} else {
+							int start = 0;
+							int end = tweetContent.length();
+
+							try {
+								highlightWord.addHighlight(start, end, paintGrey);
+							} catch (BadLocationException e) {
+								e.printStackTrace();
+							}
+						}
+					} else if (type.equals("Press Release")) {
+						String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
+						String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
+						String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
+						String sentenceList = "";
+
+						appendToPane(extendedTextPane, prContent, Color.BLACK);
+
+						Highlighter highlightWord = extendedTextPane.getHighlighter();
+
+						Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent,
+								wordToSearch);
+
+						// put sentences back together for the coreMap to sort
+						// it
+						for (String sentence : sentencesToReview.keySet()) {
+							sentenceList += sentence + " ";
+						}
+
+						Properties props = new Properties();
+						props.setProperty("annotators", "tokenize, ssplit, pos,lemma, parse, sentiment");
+
+						StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+						Annotation annotation = pipeline.process(sentenceList);
+						List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+
+						for (CoreMap sentence : sentences) {
+							String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+							String sentenceToSearch = sentence.toString();
+
+							if (sentiment.equals("Negative")) {
+								int start = sentencesToReview.get(sentenceToSearch).returnStart();
+								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+								try {
+									highlightWord.addHighlight(start, end, paintRed);
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
+
+							} else if (sentiment.equals("Very negative")) {
+								int start = sentencesToReview.get(sentenceToSearch).returnStart();
+								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+								try {
+									highlightWord.addHighlight(start, end, paintRed);
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
+
+							} else if (sentiment.equals("Positive")) {
+								int start = sentencesToReview.get(sentenceToSearch).returnStart();
+								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+								try {
+									highlightWord.addHighlight(start, end, paintGreen);
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
+
+							} else if (sentiment.equals("Very positive")) {
+								int start = sentencesToReview.get(sentenceToSearch).returnStart();
+								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+								try {
+									highlightWord.addHighlight(start, end, paintGreen);
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
+
+							} else if (sentiment.equals("Neutral")) {
+								int start = sentencesToReview.get(sentenceToSearch).returnStart();
+								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+								try {
+									highlightWord.addHighlight(start, end, paintGrey);
+								} catch (BadLocationException e) {
+									e.printStackTrace();
+								}
 							}
 						}
 					}
