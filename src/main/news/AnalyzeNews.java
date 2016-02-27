@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.BreakIterator;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -95,15 +96,19 @@ import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Sentence;
+import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
 import edu.stanford.nlp.process.DocumentPreprocessor;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
+import edu.stanford.nlp.sentiment.SentimentCoreAnnotations.SentimentAnnotatedTree;
+import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
 import helpers.IntegerPair;
 import helpers.PieRenderer;
 import main.MainFrame;
+import net.sf.classifier4J.summariser.SimpleSummariser;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
@@ -123,16 +128,31 @@ public class AnalyzeNews extends JFrame {
 	private GridBagConstraints gbc_barChartPanel;
 	private GridBagConstraints gbc_twitterChartPanel;
 	private JScrollPane headlineScrollPane;
+	private JScrollPane informationScrollPane;
+	private JScrollPane extendedWordScrollPane;
 	private JTable headLineTable;
+	private JTable informationTable;
 	private String symbol = MainFrame.searchBox.getText();
+	private String loadingLabelDirectory = MainFrame.GLOBALPATH + "images/loading-image.gif";
 	private Color highlightRed = new Color(242, 44, 67);
 	private Color highlightGreen = new Color(44, 242, 153);
 	private Color highlightGray = new Color(198, 204, 201);
+	private JPanel twitterResultPanel;
+	private JPanel searchKeyPanel;
+	private JLabel twitterNegLabel;
+	private JLabel twitterPosLabel;
+	private JLabel twitterNeutLabel;
+	private JLabel lblAverageScore;
+	private JLabel twitterLoadingLabel;
+	private JLabel sectorLoadingLabel;
+	private JLabel sigTermsLoadingLabel;
+	private JLabel searchLoadingLabel;
+	private JTextComponent informationTextField;
+	private JTextPane extendedTextPane;
 
 	public AnalyzeNews() throws IOException {
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
-		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
@@ -205,6 +225,13 @@ public class AnalyzeNews extends JFrame {
 		gbc_textField.gridy = 1;
 		getContentPane().add(informationTextField, gbc_textField);
 
+		sigTermsLoadingLabel = new JLabel("");
+		GridBagConstraints gbc_sigTermsLoadingLabel = new GridBagConstraints();
+		gbc_sigTermsLoadingLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_sigTermsLoadingLabel.gridx = 1;
+		gbc_sigTermsLoadingLabel.gridy = 2;
+		getContentPane().add(sigTermsLoadingLabel, gbc_sigTermsLoadingLabel);
+
 		informationScrollPane = new JScrollPane();
 		informationScrollPane.setEnabled(false);
 		GridBagConstraints gbc_extendedWordScrollPane = new GridBagConstraints();
@@ -223,141 +250,8 @@ public class AnalyzeNews extends JFrame {
 				int row = table.rowAtPoint(p);
 
 				if (arg0.getClickCount() == 2) {
-					extendedTextPane.setText("");
-					String type = informationTable.getModel().getValueAt(row, 0).toString();
-
-					Highlighter.HighlightPainter paintGreen = new HighlightPainter(highlightGreen);
-					Highlighter.HighlightPainter paintRed = new HighlightPainter(highlightRed);
-					Highlighter.HighlightPainter paintGrey = new HighlightPainter(highlightGray);
-
-					if (type.equals("Tweet")) {
-						String tweetContent = informationTable.getModel().getValueAt(row, 2).toString();
-						String tweetSentiment = informationTable.getModel().getValueAt(row, 4).toString();
-
-						appendToPane(extendedTextPane, tweetContent, Color.BLACK);
-						
-						Highlighter highlightWord = extendedTextPane.getHighlighter();
-
-						if (tweetSentiment.equals("Positive")) {
-							int start = 0;
-							int end = tweetContent.length();
-
-							try {
-								highlightWord.addHighlight(start, end, paintGreen);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-
-						} else if (tweetSentiment.equals("Negative")) {
-							int start = 0;
-							int end = tweetContent.length();
-
-							try {
-								highlightWord.addHighlight(start, end, paintRed);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-						} else if (tweetSentiment.equals("Neutral")) {
-							int start = 0;
-							int end = tweetContent.length();
-
-							try {
-								highlightWord.addHighlight(start, end, paintGrey);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-
-						} else {
-							int start = 0;
-							int end = tweetContent.length();
-
-							try {
-								highlightWord.addHighlight(start, end, paintGrey);
-							} catch (BadLocationException e) {
-								e.printStackTrace();
-							}
-						}
-					} else if (type.equals("Press Release")) {
-						String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
-						String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
-						String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
-						String sentenceList = "";
-
-						appendToPane(extendedTextPane, prContent, Color.BLACK);
-
-						Highlighter highlightWord = extendedTextPane.getHighlighter();
-
-						Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent,
-								wordToSearch);
-
-						// put sentences back together for the coreMap to sort
-						// it
-						for (String sentence : sentencesToReview.keySet()) {
-							sentenceList += sentence + " ";
-						}
-
-						Properties props = new Properties();
-						props.setProperty("annotators", "tokenize, ssplit, pos,lemma, parse, sentiment");
-
-						StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
-						Annotation annotation = pipeline.process(sentenceList);
-						List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
-
-						for (CoreMap sentence : sentences) {
-							String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
-							String sentenceToSearch = sentence.toString();
-
-							if (sentiment.equals("Negative")) {
-								int start = sentencesToReview.get(sentenceToSearch).returnStart();
-								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-								try {
-									highlightWord.addHighlight(start, end, paintRed);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-
-							} else if (sentiment.equals("Very negative")) {
-								int start = sentencesToReview.get(sentenceToSearch).returnStart();
-								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-								try {
-									highlightWord.addHighlight(start, end, paintRed);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-
-							} else if (sentiment.equals("Positive")) {
-								int start = sentencesToReview.get(sentenceToSearch).returnStart();
-								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-								try {
-									highlightWord.addHighlight(start, end, paintGreen);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-
-							} else if (sentiment.equals("Very positive")) {
-								int start = sentencesToReview.get(sentenceToSearch).returnStart();
-								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-
-								try {
-									highlightWord.addHighlight(start, end, paintGreen);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-
-							} else if (sentiment.equals("Neutral")) {
-								int start = sentencesToReview.get(sentenceToSearch).returnStart();
-								int end = sentencesToReview.get(sentenceToSearch).returnEnd();
-								try {
-									highlightWord.addHighlight(start, end, paintGrey);
-								} catch (BadLocationException e) {
-									e.printStackTrace();
-								}
-							}
-						}
-					}
+					Thread information = new Thread(new informationTable(row));
+					information.start();
 				}
 			}
 		});
@@ -390,6 +284,20 @@ public class AnalyzeNews extends JFrame {
 		gbc_twitterChartPanel.gridx = 1;
 		gbc_twitterChartPanel.gridy = 4;
 
+		twitterLoadingLabel = new JLabel("");
+		GridBagConstraints gbc_twitterLoadingLabel = new GridBagConstraints();
+		gbc_twitterLoadingLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_twitterLoadingLabel.gridx = 1;
+		gbc_twitterLoadingLabel.gridy = 4;
+		getContentPane().add(twitterLoadingLabel, gbc_twitterLoadingLabel);
+
+		sectorLoadingLabel = new JLabel("");
+		GridBagConstraints gbc_sectorLoadingLabel = new GridBagConstraints();
+		gbc_sectorLoadingLabel.insets = new Insets(0, 0, 5, 0);
+		gbc_sectorLoadingLabel.gridx = 2;
+		gbc_sectorLoadingLabel.gridy = 0;
+		getContentPane().add(sectorLoadingLabel, gbc_sectorLoadingLabel);
+
 		extendedWordScrollPane = new JScrollPane();
 		GridBagConstraints gbc_extendedWordScrollPane1 = new GridBagConstraints();
 		gbc_extendedWordScrollPane1.insets = new Insets(0, 0, 5, 0);
@@ -399,25 +307,27 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
 
 		extendedTextPane = new JTextPane();
+		searchLoadingLabel = new JLabel("");
+
 		extendedWordScrollPane.setViewportView(extendedTextPane);
 
-		panel = new JPanel();
-		GridBagConstraints gbc_panel = new GridBagConstraints();
-		gbc_panel.insets = new Insets(0, 0, 0, 5);
-		gbc_panel.fill = GridBagConstraints.VERTICAL;
-		gbc_panel.gridx = 1;
-		gbc_panel.gridy = 5;
-		getContentPane().add(panel, gbc_panel);
-		panel.setLayout(new GridLayout(1, 0, 0, 0));
+		twitterResultPanel = new JPanel();
+		GridBagConstraints gbc_twitterResultPanel = new GridBagConstraints();
+		gbc_twitterResultPanel.insets = new Insets(0, 0, 0, 5);
+		gbc_twitterResultPanel.fill = GridBagConstraints.VERTICAL;
+		gbc_twitterResultPanel.gridx = 1;
+		gbc_twitterResultPanel.gridy = 5;
+		getContentPane().add(twitterResultPanel, gbc_twitterResultPanel);
+		twitterResultPanel.setLayout(new GridLayout(1, 0, 0, 0));
 
 		twitterPosLabel = new JLabel("Positive: ");
-		panel.add(twitterPosLabel);
+		twitterResultPanel.add(twitterPosLabel);
 
 		twitterNegLabel = new JLabel("Negative: ");
-		panel.add(twitterNegLabel);
+		twitterResultPanel.add(twitterNegLabel);
 
 		twitterNeutLabel = new JLabel("Neutral: ");
-		panel.add(twitterNeutLabel);
+		twitterResultPanel.add(twitterNeutLabel);
 
 		searchKeyPanel = new JPanel();
 		GridBagConstraints gbc_searchKeyPanel = new GridBagConstraints();
@@ -428,23 +338,67 @@ public class AnalyzeNews extends JFrame {
 
 		// images are 12x11 for consistency
 		BufferedImage redImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightRed.png"));
+		BufferedImage greenImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGreen.png"));
+		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
+
+		GridBagLayout gbl_searchKeyPanel = new GridBagLayout();
+		gbl_searchKeyPanel.columnWidths = new int[] { 459, 67, 86, 59, 0 };
+		gbl_searchKeyPanel.rowHeights = new int[] { 20, 0, 0, 0 };
+		gbl_searchKeyPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_searchKeyPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		searchKeyPanel.setLayout(gbl_searchKeyPanel);
+
 		JLabel positiveLabel = new JLabel("Negative");
 		positiveLabel.setIcon(
 				new ImageIcon(new ImageIcon(redImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
 
-		BufferedImage greenImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGreen.png"));
+		GridBagConstraints gbc_positiveLabel = new GridBagConstraints();
+		gbc_positiveLabel.anchor = GridBagConstraints.NORTHWEST;
+		gbc_positiveLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_positiveLabel.gridx = 1;
+		gbc_positiveLabel.gridy = 0;
+		searchKeyPanel.add(positiveLabel, gbc_positiveLabel);
+
 		JLabel negativeLabel = new JLabel("Positive");
 		negativeLabel.setIcon(
 				new ImageIcon(new ImageIcon(greenImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
 
-		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
+		GridBagConstraints gbc_negativeLabel = new GridBagConstraints();
+		gbc_negativeLabel.anchor = GridBagConstraints.NORTH;
+		gbc_negativeLabel.insets = new Insets(0, 0, 5, 5);
+		gbc_negativeLabel.gridx = 2;
+		gbc_negativeLabel.gridy = 0;
+		searchKeyPanel.add(negativeLabel, gbc_negativeLabel);
+
 		JLabel neutralLabel = new JLabel("Neutral");
 		neutralLabel.setIcon(
 				new ImageIcon(new ImageIcon(grayImage).getImage().getScaledInstance(20, 20, Image.SCALE_DEFAULT)));
 
-		searchKeyPanel.add(positiveLabel);
-		searchKeyPanel.add(negativeLabel);
-		searchKeyPanel.add(neutralLabel);
+		GridBagConstraints gbc_neutralLabel = new GridBagConstraints();
+		gbc_neutralLabel.insets = new Insets(0, 0, 5, 0);
+		gbc_neutralLabel.anchor = GridBagConstraints.NORTHWEST;
+		gbc_neutralLabel.gridx = 3;
+		gbc_neutralLabel.gridy = 0;
+
+		searchKeyPanel.add(neutralLabel, gbc_neutralLabel);
+
+		twitterLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+
+		sectorLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+
+		sigTermsLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+
+		searchLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+
+		searchLoadingLabel.setVisible(false);
+
+		lblAverageScore = new JLabel("Average Score: - / 3.0");
+		GridBagConstraints gbc_lblAverageScore = new GridBagConstraints();
+		gbc_lblAverageScore.insets = new Insets(0, 0, 5, 5);
+		gbc_lblAverageScore.gridx = 2;
+		gbc_lblAverageScore.gridy = 1;
+
+		searchKeyPanel.add(lblAverageScore, gbc_lblAverageScore);
 
 		gbc_pieChartPanel = new GridBagConstraints();
 		gbc_pieChartPanel.insets = new Insets(0, 0, 5, 0);
@@ -608,7 +562,8 @@ public class AnalyzeNews extends JFrame {
 
 						URL url = new URL(s);
 						String text = ArticleExtractor.INSTANCE.getText(url);
-						writeToCacheFile(text, symbol, headlinesForFiles.get(numberOfFiles++));
+						String cleanText = text.substring(text.indexOf("Done") + 4).trim().replaceAll(" +", " ");
+						writeToCacheFile(cleanText, symbol, headlinesForFiles.get(numberOfFiles++));
 					} catch (IOException e) {
 						new CheckInternet();
 					} catch (BoilerpipeProcessingException e) {
@@ -649,8 +604,199 @@ public class AnalyzeNews extends JFrame {
 		}
 	};
 
+	class informationTable implements Runnable {
+		int row;
+
+		public informationTable(int r) {
+			row = r;
+
+		}
+
+		public void run() {
+			extendedTextPane.setEnabled(false);
+			extendedWordScrollPane.setRowHeaderView(searchLoadingLabel);
+			extendedTextPane.setText("");
+			searchLoadingLabel.setVisible(true);
+
+			String type = informationTable.getModel().getValueAt(row, 0).toString();
+
+			Highlighter.HighlightPainter paintGreen = new HighlightPainter(highlightGreen);
+			Highlighter.HighlightPainter paintRed = new HighlightPainter(highlightRed);
+			Highlighter.HighlightPainter paintGrey = new HighlightPainter(highlightGray);
+
+			if (type.equals("Tweet")) {
+				String tweetContent = informationTable.getModel().getValueAt(row, 2).toString();
+				String tweetSentiment = informationTable.getModel().getValueAt(row, 4).toString();
+
+				appendToPane(extendedTextPane, tweetContent, Color.BLACK);
+
+				Highlighter highlightWord = extendedTextPane.getHighlighter();
+
+				if (tweetSentiment.equals("Positive")) {
+					int start = 0;
+					int end = tweetContent.length();
+
+					try {
+						highlightWord.addHighlight(start, end, paintGreen);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+
+				} else if (tweetSentiment.equals("Negative")) {
+					int start = 0;
+					int end = tweetContent.length();
+
+					try {
+						highlightWord.addHighlight(start, end, paintRed);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+				} else if (tweetSentiment.equals("Neutral")) {
+					int start = 0;
+					int end = tweetContent.length();
+
+					try {
+						highlightWord.addHighlight(start, end, paintGrey);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+
+				} else {
+					int start = 0;
+					int end = tweetContent.length();
+
+					try {
+						highlightWord.addHighlight(start, end, paintGrey);
+					} catch (BadLocationException e) {
+						e.printStackTrace();
+					}
+				}
+
+				lblAverageScore.setText("Average Score: - / 3.0");
+			} else if (type.equals("Press Release")) {
+				ArrayList<Double> scores = new ArrayList<Double>();
+				String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
+				String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
+				String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
+				String sentenceList = "";
+
+				appendToPane(extendedTextPane, prContent + ".", Color.BLACK);
+
+				Highlighter highlightWord = extendedTextPane.getHighlighter();
+
+				Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent + ".",
+						wordToSearch);
+
+				// put sentences back together for the coreMap to sort
+				// it
+
+				for (String sentence : sentencesToReview.keySet()) {
+					sentenceList += sentence + " ";
+				}
+
+				Properties props = new Properties();
+				props.setProperty("annotators", "tokenize, ssplit, pos,lemma, parse, sentiment");
+
+				StanfordCoreNLP pipeline = new StanfordCoreNLP(props);
+				Annotation annotation = pipeline.process(sentenceList);
+				List<CoreMap> sentences = annotation.get(CoreAnnotations.SentencesAnnotation.class);
+
+				for (CoreMap sentence : sentences) {
+					String sentiment = sentence.get(SentimentCoreAnnotations.SentimentClass.class);
+					String sentenceToSearch = sentence.toString();
+
+					Tree annotatedTree = sentence.get(SentimentAnnotatedTree.class);
+					double score = RNNCoreAnnotations.getPredictedClass(annotatedTree);
+					scores.add(score);
+
+					if (sentiment.equals("Negative")) {
+						int start = sentencesToReview.get(sentenceToSearch).returnStart();
+						int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+						try {
+							highlightWord.addHighlight(start, end, paintRed);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					} else if (sentiment.equals("Very negative")) {
+						int start = sentencesToReview.get(sentenceToSearch).returnStart();
+						int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+						try {
+							highlightWord.addHighlight(start, end, paintRed);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					} else if (sentiment.equals("Positive")) {
+						int start = sentencesToReview.get(sentenceToSearch).returnStart();
+						int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+						try {
+							highlightWord.addHighlight(start, end, paintGreen);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					} else if (sentiment.equals("Very positive")) {
+						int start = sentencesToReview.get(sentenceToSearch).returnStart();
+						int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+						try {
+							highlightWord.addHighlight(start, end, paintGreen);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					} else if (sentiment.equals("Neutral")) {
+						int start = sentencesToReview.get(sentenceToSearch).returnStart();
+						int end = sentencesToReview.get(sentenceToSearch).returnEnd();
+
+						try {
+							highlightWord.addHighlight(start, end, paintGrey);
+						} catch (BadLocationException e) {
+							e.printStackTrace();
+						}
+					}
+				}
+
+				// SimpleSummariser summariser = new SimpleSummariser();
+				// String summary = summariser.summarise(prContent, 3); // 3
+				// // sentence
+				// // summary
+				// String cleanSummary = summary.substring(summary.indexOf("--")
+				// + 3).trim().replaceAll(" +", " ");
+				// appendToPane(extendedTextPane,
+				// "\n\n##########################\n\n", Color.RED);
+				// // appendToPane(extendedTextPane, cleanSummary, Color.BLACK);
+				// if (summary.contains("--")) {
+				// appendToPane(extendedTextPane, cleanSummary, Color.BLACK);
+				// } else {
+				// appendToPane(extendedTextPane, summary, Color.BLACK);
+				// }
+
+				DecimalFormat df = new DecimalFormat("####0.00");
+
+				lblAverageScore.setText("Average Score: " + df.format(averageScore(scores)) + " / 3.0");
+				extendedTextPane.setCaretPosition(0);
+				extendedTextPane.setEnabled(true);
+				searchLoadingLabel.setVisible(false);
+				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
+			}
+
+			extendedWordScrollPane.setViewportView(extendedTextPane);
+		}
+	}
+
+	public static double averageScore(ArrayList<Double> scores) {
+		double sum = 0.0;
+
+		for (double score : scores) {
+			sum += score;
+		}
+
+		return sum / scores.size();
+	}
+
 	// cleans text since files can't have certain characters
-	private String cleanText(String fix) {
+	public static String cleanText(String fix) {
 		String result = fix;
 		result = result.replaceAll("[^a-zA-Z0-9.-]", " ").trim().replaceAll(" +", " ");
 
@@ -663,6 +809,8 @@ public class AnalyzeNews extends JFrame {
 				getContentPane().remove(barChartPanel);
 			}
 		}
+
+		sigTermsLoadingLabel.setVisible(false);
 
 		final CategoryDataset dataset = createDatasetForBarChart();
 		final JFreeChart chart = createBarChart(dataset);
@@ -689,6 +837,8 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(pieChartPanel, gbc_pieChartPanel);
 		getContentPane().revalidate();
 		getContentPane().repaint();
+
+		sectorLoadingLabel.setVisible(false);
 	}
 
 	private void pullDataFromDirectory() throws IOException {
@@ -856,29 +1006,18 @@ public class AnalyzeNews extends JFrame {
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
+
 			twitterChartPanel = new ChartPanel(chart);
+			twitterLoadingLabel.setVisible(false);
 
 			getContentPane().add(twitterChartPanel, gbc_twitterChartPanel);
 			getContentPane().revalidate();
 			getContentPane().repaint();
 
 			numberOfTimesSeenTwitter();
-
-			// twitterTextArea.setCaretPosition(0);
-
 		}
 	};
-
-	private JPanel panel;
-	private JLabel twitterNegLabel;
-	private JLabel twitterPosLabel;
-	private JLabel twitterNeutLabel;
-	private JTextComponent informationTextField;
-	private JScrollPane informationScrollPane;
-	private JTable informationTable;
-	private JScrollPane extendedWordScrollPane;
-	private JTextPane extendedTextPane;
-	private JPanel searchKeyPanel;
+	private JLabel lblNewLabel;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
@@ -972,9 +1111,6 @@ public class AnalyzeNews extends JFrame {
 
 	private String[] listOfDates(Map<Date, String> tweetDateAndContent) throws ParseException {
 		ArrayList<String> result = new ArrayList<String>();
-
-		int x = 0;
-		System.out.println(tweetDateAndContent.keySet().size());
 
 		for (Date d : tweetDateAndContent.keySet()) {
 			SimpleDateFormat oldFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss z yyyy");
