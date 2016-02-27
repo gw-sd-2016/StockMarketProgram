@@ -672,6 +672,10 @@ public class AnalyzeNews extends JFrame {
 					}
 				}
 
+				extendedTextPane.setEnabled(true);
+				searchLoadingLabel.setVisible(false);
+				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
+
 				lblAverageScore.setText("Average Score: - / 3.0");
 			} else if (type.equals("Press Release")) {
 				ArrayList<Double> scores = new ArrayList<Double>();
@@ -926,6 +930,7 @@ public class AnalyzeNews extends JFrame {
 		if (theDirectory.exists()) {
 			int fileCount = new File(directory).listFiles().length;
 			int headlineSize = headlinesForFiles.size();
+
 			if (fileCount != headlineSize) {
 				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
 				for (File file : fileDirectory.listFiles())
@@ -933,13 +938,14 @@ public class AnalyzeNews extends JFrame {
 
 				return true;
 			} else {
+
 				return false;
 			}
 		} else {
 			createCacheFolder(symbol);
+
 			return true;
 		}
-
 	}
 
 	private void createCacheFolder(String symbol) {
