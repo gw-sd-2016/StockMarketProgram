@@ -1,7 +1,10 @@
 package main.news;
 
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FontMetrics;
 import java.awt.GradientPaint;
+import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
@@ -42,6 +45,7 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -49,7 +53,10 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.plaf.metal.MetalToolTipUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.AttributeSet;
@@ -108,7 +115,6 @@ import helpers.ButtonColumn;
 import helpers.IntegerPair;
 import helpers.PieRenderer;
 import main.MainFrame;
-import net.sf.classifier4J.summariser.SimpleSummariser;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
@@ -134,6 +140,8 @@ public class AnalyzeNews extends JFrame {
 	private JTable informationTable;
 	private String symbol = MainFrame.searchBox.getText();
 	private String loadingLabelDirectory = MainFrame.GLOBALPATH + "images/loading-image.gif";
+	private String prDate = null;
+	private String prMovement = null;
 	private Color highlightRed = new Color(242, 44, 67);
 	private Color highlightGreen = new Color(44, 242, 153);
 	private Color highlightGray = new Color(198, 204, 201);
@@ -205,6 +213,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_barChartPanel.gridy = 2;
 
 		informationTextField = new JTextField();
+
 		PromptSupport.setPrompt("Enter a Word or Phrase to Search", informationTextField);
 
 		informationTextField.addKeyListener(new KeyAdapter() {
@@ -306,8 +315,60 @@ public class AnalyzeNews extends JFrame {
 		gbc_extendedWordScrollPane1.gridy = 4;
 		getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
 
-		extendedTextPane = new JTextPane();
+		class ImageToolTipUI extends MetalToolTipUI {
+			double annotationPosX = MainFrame.annotationPositions.get(prDate).returnPositionX();
+			double annotationPosY = MainFrame.annotationPositions.get(prDate).returnPositionY();
+
+			ImageIcon newImage = new ImageIcon(MainFrame.returnChartImageAndResize(prMovement, annotationPosX,
+					annotationPosY, MainFrame.mainChartPanel.getWidth(), MainFrame.mainChartPanel.getHeight(), prDate));
+
+			public void paint(Graphics g, JComponent c) {
+
+				System.out.println("x : " + (int) MainFrame.annotationPositions.get(prDate).returnPositionX());
+
+				System.out.println("y : " + (int) MainFrame.annotationPositions.get(prDate).returnPositionY());
+
+				FontMetrics metrics = c.getFontMetrics(g.getFont());
+				g.setColor(c.getForeground());
+				g.drawString(((JToolTip) c).getTipText(), 1, 1);
+				g.drawImage(newImage.getImage(), 1, metrics.getHeight(), c);
+			}
+
+			public Dimension getPreferredSize(JComponent c) {
+				FontMetrics metrics = c.getFontMetrics(c.getFont());
+				String tipText = ((JToolTip) c).getTipText();
+
+				if (tipText == null) {
+					tipText = "";
+				}
+
+				Image image = newImage.getImage();
+
+				int width = SwingUtilities.computeStringWidth(metrics, tipText);
+				int height = metrics.getHeight() + image.getHeight(c);
+
+				if (width < image.getWidth(c)) {
+					width = image.getWidth(c);
+				}
+
+				return new Dimension(width, height);
+			}
+		}
+
+		class ImageToolTip extends JToolTip {
+			public ImageToolTip() {
+				setUI(new ImageToolTipUI());
+			}
+		}
+
+		extendedTextPane = new JTextPane() {
+			public JToolTip createToolTip() {
+				return new ImageToolTip();
+			}
+		};
+
 		searchLoadingLabel = new JLabel("");
+		extendedTextPane.setToolTipText("");
 
 		extendedWordScrollPane.setViewportView(extendedTextPane);
 
@@ -684,6 +745,18 @@ public class AnalyzeNews extends JFrame {
 				String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
 				String sentenceList = "";
 
+				prMovement = informationTable.getModel().getValueAt(row, 4).toString();
+
+				for (String date : MainFrame.headlinesAndDates.keySet()) {
+					ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
+
+					for (String ss : headline) {
+						if ((ss.replaceAll("'", " ") + ".txt").equals(prTitle)) {
+							prDate = date;
+						}
+					}
+				}
+
 				appendToPane(extendedTextPane, prContent + ".", Color.BLACK);
 
 				Highlighter highlightWord = extendedTextPane.getHighlighter();
@@ -869,6 +942,7 @@ public class AnalyzeNews extends JFrame {
 
 			if (!theFile.exists()) {
 				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+
 				for (File file : fileDirectory.listFiles())
 					file.delete();
 

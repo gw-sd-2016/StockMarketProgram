@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
+import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -23,6 +24,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -48,12 +50,16 @@ import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.annotations.XYAnnotation;
+import org.jfree.chart.annotations.XYDrawableAnnotation;
 import org.jfree.chart.annotations.XYPointerAnnotation;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.ValueAxis;
 import org.jfree.chart.labels.StandardXYToolTipGenerator;
 import org.jfree.chart.panel.CrosshairOverlay;
 import org.jfree.chart.plot.Crosshair;
+import org.jfree.chart.plot.IntervalMarker;
+import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -73,6 +79,8 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
+import helpers.AnnotationPosition;
+import helpers.CircleDrawer;
 import helpers.IStringHelper;
 import main.menu.AboutMenu;
 import main.news.AnalyzeNews;
@@ -97,15 +105,17 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 	private Date date;
 	private DateFormat timeFormat;
 	private DateFormat dateFormat;
-	public ChartPanel chartPanel;
+	public static ChartPanel mainChartPanel;
 	public static GridBagConstraints gbc_chartPanel;
 	public static Map<String, String> newsHeadLines = new HashMap<String, String>();
 	public static Map<String, ArrayList<String>> headlinesAndDates;
+	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
 	public static JLabel lblCompanyName;
 	public JLabel lblPressReleasesToBeAn;
 	public JLabel lblAvgDailyVolume;
 	public JLabel lblDayRange;
 	public JLabel lblExchange;
+	public static JFreeChart mainChart;
 
 	/**
 	 * Launch the application.
@@ -369,11 +379,11 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		priceData = createDataset();
 
 		String title = "";
-		JFreeChart chart = ChartFactory.createTimeSeriesChart(title, "Date", "Volume", priceData, true, true, false);
-		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
-		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
+		mainChart = ChartFactory.createTimeSeriesChart(title, "Date", "Volume", priceData, true, true, false);
+		mainChart.setBackgroundPaint(new Color(255, 255, 255, 0));
+		mainChart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
-		XYPlot plot = (XYPlot) chart.getPlot();
+		XYPlot plot = (XYPlot) mainChart.getPlot();
 		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
 		rangeAxis1.setLowerMargin(0);
 		DecimalFormat format = new DecimalFormat("###,###");
@@ -419,13 +429,58 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 					headLineAnnotation.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
 					plot.addAnnotation(headLineAnnotation);
 
+					annotationPositions.put(headLineAnnotation.getText(),
+							new AnnotationPosition(headLineAnnotation.getX(), headLineAnnotation.getY()));
+
+					System.out.println(headLineAnnotation.getText() + " - " + headLineAnnotation.getX() + " and "
+							+ headLineAnnotation.getY());
+
 				}
 			}
 		}
 
 		logger.info("Finished creating date volume chart");
 
-		return chart;
+		return mainChart;
+	}
+
+	public static BufferedImage returnChartImageAndResize(String movement, double x, double y, int panelWidth,
+			int panelHeight, String prDate) {
+		final CircleDrawer cd = new CircleDrawer(Color.BLUE, new BasicStroke(1.0f));
+		final XYAnnotation point = new XYDrawableAnnotation(x, y, 15, 15, cd);
+
+		XYPlot plot = (XYPlot) mainChart.getPlot();
+
+		final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(movement, x, y, 3);
+		plot.clearAnnotations();
+		plot.clearDomainMarkers();
+		plot.clearRangeMarkers();
+		plot.addAnnotation(point);
+
+		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
+		Date date = null;
+
+		try {
+			date = oldFormat.parse(prDate);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		Calendar startDate = Calendar.getInstance();
+		startDate.setTime(date);
+
+		Calendar endDate = Calendar.getInstance();
+		endDate.setTime(date);
+		endDate.add(Calendar.DATE, 4);
+
+		Marker target = new IntervalMarker((double) startDate.getTimeInMillis(), (double) endDate.getTimeInMillis());
+		target.setPaint(Color.YELLOW);
+		plot.addDomainMarker(target, org.jfree.ui.Layer.BACKGROUND);
+		plot.addAnnotation(headLineAnnotation);
+
+		BufferedImage mainChartImage = mainChart.createBufferedImage(panelWidth, panelHeight);
+
+		return mainChartImage;
 	}
 
 	public class VolumeHistory {
@@ -441,10 +496,11 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 			dataset = createDataset();
 			chart = createChart(priceData);
 			priceData = createDataset();
-			chartPanel = new ChartPanel(chart);
+			mainChartPanel = new ChartPanel(chart);
 
 			CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
-			chartPanel.addChartMouseListener(new ChartMouseListener() {
+
+			mainChartPanel.addChartMouseListener(new ChartMouseListener() {
 
 				@Override
 				public void chartMouseClicked(ChartMouseEvent arg0) {
@@ -453,7 +509,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 
 				@Override
 				public void chartMouseMoved(ChartMouseEvent event) {
-					Rectangle2D dataArea = chartPanel.getScreenDataArea();
+					Rectangle2D dataArea = mainChartPanel.getScreenDataArea();
 					JFreeChart chart = event.getChart();
 					XYPlot plot = (XYPlot) chart.getPlot();
 					ValueAxis xAxis = plot.getDomainAxis();
@@ -471,9 +527,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 			yCrosshair.setLabelVisible(true);
 			crosshairOverlay.addDomainCrosshair(xCrosshair);
 			crosshairOverlay.addRangeCrosshair(yCrosshair);
-			chartPanel.addOverlay(crosshairOverlay);
-			contentPane.add(chartPanel, gbc_chartPanel);
+			mainChartPanel.addOverlay(crosshairOverlay);
 
+			contentPane.add(mainChartPanel, gbc_chartPanel);
 		}
 
 		public void getData() throws IOException {
@@ -522,6 +578,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 					volumeDataNumber.add(Double.parseDouble(splitter[5]));
 				}
 			}
+
 			logger.info("Finished fetching historical data");
 		}
 
@@ -529,10 +586,11 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		// properly
 		private String dateFix(String fixable) {
 			if (fixable.charAt(0) == '0') {
+
 				return fixable.replace("0", "");
 			}
-			return fixable;
 
+			return fixable;
 		}
 	}
 
@@ -574,13 +632,16 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 			Element nextSib = e.nextElementSibling();
 			Elements divs = nextSib.select("a");
 			messageTitles = new ArrayList<String>();
+
 			for (int j = 0; j < divs.size(); j++) {
 				Element d = divs.get(j);
 				messageTitles.add(d.text());
 			}
+
 			SimpleDateFormat oldFormat = new SimpleDateFormat("EEEE, MMM dd, yyyy");
 			Date date = oldFormat.parse(e.text());
 			SimpleDateFormat newFormat = new SimpleDateFormat("yyyy-MM-dd");
+
 			headlinesAndDates.put(newFormat.format(date), messageTitles);
 		}
 
@@ -599,6 +660,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("yyyy");
+
 		return Integer.parseInt(newFormat.format(date));
 	}
 
@@ -606,6 +668,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("d");
+
 		return Integer.parseInt(newFormat.format(date));
 	}
 
@@ -613,6 +676,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(xlo);
 		SimpleDateFormat newFormat = new SimpleDateFormat("MM");
+
 		return Integer.parseInt(newFormat.format(date));
 	}
 
@@ -638,17 +702,20 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		if (arg0.getActionCommand() == "GO") {
 			try {
 				if (contentPane.getComponentCount() != 0) {
-					if (chartPanel != null) {
-						contentPane.remove(chartPanel);
+					if (mainChartPanel != null) {
+						contentPane.remove(mainChartPanel);
 					}
 				}
 
 				new VolumeHistory();
+
 				getGeneralData();
 
 			} catch (IOException e1) {
+
 				new CheckInternet();
 			} catch (ParseException e) {
+
 				new CheckInternet();
 			}
 		} else if (arg0.getActionCommand() == "News") {
@@ -667,8 +734,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
 			try {
 				if (contentPane.getComponentCount() != 0) {
-					if (chartPanel != null) {
-						contentPane.remove(chartPanel);
+					if (mainChartPanel != null) {
+						contentPane.remove(mainChartPanel);
 					}
 				}
 
