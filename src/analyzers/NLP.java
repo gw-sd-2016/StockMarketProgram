@@ -4,7 +4,6 @@ import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.neural.rnn.RNNCoreAnnotations;
 import edu.stanford.nlp.pipeline.Annotation;
 import edu.stanford.nlp.pipeline.StanfordCoreNLP;
-import edu.stanford.nlp.sentiment.SentimentCoreAnnotations;
 import edu.stanford.nlp.sentiment.SentimentCoreAnnotations.SentimentAnnotatedTree;
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
@@ -15,7 +14,7 @@ public class NLP {
 	public static int findSentiment(String tweet) {
 
 		int mainSentiment = 0;
-		
+
 		if (tweet != null && tweet.length() > 0) {
 			int longest = 0;
 			Annotation annotation = pipeline.process(tweet);
@@ -31,6 +30,7 @@ public class NLP {
 				}
 			}
 		}
+
 		return mainSentiment;
 	}
 }

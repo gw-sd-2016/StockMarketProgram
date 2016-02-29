@@ -31,6 +31,7 @@ import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -112,9 +113,9 @@ import edu.stanford.nlp.sentiment.SentimentCoreAnnotations.SentimentAnnotatedTre
 import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
-import helpers.IntegerPair;
 import helpers.PieRenderer;
 import main.MainFrame;
+import objects.IntegerPair;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
@@ -176,7 +177,23 @@ public class AnalyzeNews extends JFrame {
 		gbc_headlineScrollPane.gridy = 0;
 		getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
 
-		headLineTable = new JTable();
+		headLineTable = new JTable() {
+			// Implement table cell tool tips.
+			public String getToolTipText(MouseEvent e) {
+				String tip = null;
+				java.awt.Point p = e.getPoint();
+
+				int rowIndex = rowAtPoint(p);
+				int colIndex = columnAtPoint(p);
+
+				try {
+					tip = getValueAt(rowIndex, colIndex).toString();
+				} catch (RuntimeException e1) {
+				}
+
+				return tip;
+			}
+		};
 
 		headLineTable.setModel(new DefaultTableModel(new Object[][] {},
 				new String[] { "Number", "Headline", "Date", "Movement", "Days After Press Release", "Content" }) {
@@ -323,10 +340,6 @@ public class AnalyzeNews extends JFrame {
 					annotationPosY, MainFrame.mainChartPanel.getWidth(), MainFrame.mainChartPanel.getHeight(), prDate));
 
 			public void paint(Graphics g, JComponent c) {
-
-				System.out.println("x : " + (int) MainFrame.annotationPositions.get(prDate).returnPositionX());
-
-				System.out.println("y : " + (int) MainFrame.annotationPositions.get(prDate).returnPositionY());
 
 				FontMetrics metrics = c.getFontMetrics(g.getFont());
 				g.setColor(c.getForeground());
@@ -534,14 +547,6 @@ public class AnalyzeNews extends JFrame {
 			return clean.toString();
 		}
 
-		public String changeDateFormat(String dateString) throws ParseException {
-			SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
-			Date date = oldFormat.parse(dateString);
-			SimpleDateFormat newFormat = new SimpleDateFormat("EEEE, MMM dd, yyyy");
-			newFormat.format(date);
-			return newFormat.format(date).toString();
-		}
-
 		public void run() {
 
 			Document doc = null;
@@ -559,21 +564,31 @@ public class AnalyzeNews extends JFrame {
 
 			// this will get the days volume of press release and the next 3
 			// days (if not what is available)
+
 			for (String date : MainFrame.headlinesAndDates.keySet()) {
 				double totalVolume = 0;
 				ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
+				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+				Calendar volumeDate = Calendar.getInstance();
+
+				try {
+					Date dates = formatter.parse(date);
+					volumeDate = Calendar.getInstance();
+					volumeDate.setTime(dates);
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
 
 				for (int i = 0; i < MainFrame.volumeDataDate.size(); i++) {
 					int nextThreeDates = i;
 					int nextthreeDatesLimit = i + 4;
 					int howManyDaysAfter = 0;
 
-					if (MainFrame.volumeDataDate.get(i).equals(date)) {
-
+					if (MainFrame.volumeDataDate.get(i).getCalendar().equals(volumeDate)) {
 						while (nextThreeDates < nextthreeDatesLimit) {
 
 							if (nextThreeDates < MainFrame.volumeDataDate.size()) {
-								totalVolume += (double) MainFrame.volumeDataNumber.get(nextThreeDates);
+								totalVolume += (double) MainFrame.volumeDataDate.get(nextThreeDates).getVolume();
 								howManyDaysAfter++;
 								nextThreeDates++;
 
@@ -582,31 +597,21 @@ public class AnalyzeNews extends JFrame {
 							}
 						}
 
-						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataNumber.get(i)) {
+						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataDate.get(i).getVolume()) {
 							ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
 
 							for (String ss : headline) {
-								try {
-
-									headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Down", howManyDaysAfter,
-											"Read" });
-
-								} catch (ParseException e) {
-									e.printStackTrace();
-								}
+								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
+										MainFrame.volumeDataDate.get(i).getDateAsString(), "Down", howManyDaysAfter,
+										"Read" });
 							}
 						} else {
 							for (String ss : headline) {
 								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
 
-								try {
-									headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-											changeDateFormat(MainFrame.volumeDataDate.get(i)), "Up", howManyDaysAfter,
-											"Read" });
-								} catch (ParseException e) {
-									e.printStackTrace();
-								}
+								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
+										MainFrame.volumeDataDate.get(i).getDateAsString(), "Up", howManyDaysAfter,
+										"Read" });
 							}
 						}
 					}
@@ -633,7 +638,6 @@ public class AnalyzeNews extends JFrame {
 				}
 
 				Collections.reverse(MainFrame.volumeDataDate);
-				Collections.reverse(MainFrame.volumeDataNumber);
 			}
 
 			numberOfFiles = 0;
@@ -661,7 +665,6 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			addBarChart();
-
 		}
 	};
 
@@ -1097,7 +1100,6 @@ public class AnalyzeNews extends JFrame {
 			numberOfTimesSeenTwitter();
 		}
 	};
-	private JLabel lblNewLabel;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();

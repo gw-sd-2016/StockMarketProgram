@@ -2,6 +2,22 @@ A Stock Program that analyzes trends in press releases and tweets to determine t
 
 ---------------------------------------------------------------------
 
+Yahoo Finance API 
+
+	- http://finance.yahoo.com
+-----
+Apache Commons CSV
+
+	- https://commons.apache.org/proper/commons-csv/
+-----
+Stanford CoreNLP
+
+	- http://stanfordnlp.github.io/CoreNLP/
+-----
+Classifier4J
+
+	- http://classifier4j.sourceforge.net/
+-----
 JFreeChart 
 
 	- http://www.jfree.org/index.html
@@ -19,15 +35,5 @@ Boilerpipe
 
 	- https://code.google.com/p/boilerpipe/
 -----
-Yahoo Finance API 
 
-	- http://finance.yahoo.com
------
-Stanford CoreNLP
-
-	- http://stanfordnlp.github.io/CoreNLP/
------
-Classifier4J
-
-	- http://classifier4j.sourceforge.net/
 
