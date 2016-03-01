@@ -16,5 +16,4 @@ public class IntegerPair {
 	public int returnEnd() {
 		return endingIndex;
 	}
-
 }
