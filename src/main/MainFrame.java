@@ -15,9 +15,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.net.URL;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
@@ -43,6 +43,10 @@ import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.EmptyBorder;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.io.input.BOMInputStream;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Logger;
 import org.jfree.chart.ChartFactory;
@@ -65,8 +69,6 @@ import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.general.DatasetUtilities;
 import org.jfree.data.time.Day;
-import org.jfree.data.time.Hour;
-import org.jfree.data.time.Minute;
 import org.jfree.data.time.TimeSeries;
 import org.jfree.data.time.TimeSeriesCollection;
 import org.jfree.data.xy.IntervalXYDataset;
@@ -81,12 +83,13 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import helpers.AnnotationPosition;
 import helpers.CircleDrawer;
-import helpers.IStringHelper;
 import main.menu.AboutMenu;
 import main.news.AnalyzeNews;
+import objects.GeneralData;
+import objects.VolumeDate;
 import popupmessages.CheckInternet;
 
-public class MainFrame extends JFrame implements ActionListener, KeyListener, IStringHelper {
+public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public static String GLOBALPATH = "C:\\git\\StockMarketProgram\\";
 	private static final Logger logger = Logger.getLogger(MainFrame.class);
 	private static JPanel contentPane;
@@ -94,27 +97,21 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 	private JMenuItem menuApplication;
 	private JMenuItem menuAppAbout;
 	private JMenuItem menuAppFeedback;
-	private JMenuItem menuAppMasterList;
 	private JMenuItem menuAppExit;
-	public static ArrayList<Double> volumeDataNumber = new ArrayList<Double>();
-	public static ArrayList<String> volumeDataDate = new ArrayList<String>();
-	public static JLabel lblDate;
-	public static JLabel labelCompany;
-	private JLabel lblTime;
+	public static ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
 	public static JTextField searchBox;
-	private Date date;
-	private DateFormat timeFormat;
-	private DateFormat dateFormat;
 	public static ChartPanel mainChartPanel;
-	public static GridBagConstraints gbc_chartPanel;
+	public static GridBagConstraints gbc_mainChartPanel;
 	public static Map<String, String> newsHeadLines = new HashMap<String, String>();
 	public static Map<String, ArrayList<String>> headlinesAndDates;
 	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
 	public static JLabel lblCompanyName;
-	public JLabel lblPressReleasesToBeAn;
-	public JLabel lblAvgDailyVolume;
-	public JLabel lblDayRange;
-	public JLabel lblExchange;
+	public static JLabel labelCompany;
+	private JLabel lblDate;
+	private JLabel lblPressReleasesToBeAn;
+	private JLabel lblAvgDailyVolume;
+	private JLabel lblDayRange;
+	private JLabel lblExchange;
 	public static JFreeChart mainChart;
 
 	/**
@@ -160,14 +157,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		setJMenuBar(menuBar);
 		menuApplication = new JMenu("Stock Analyzer");
 		menuApplication.setFont(new Font("Copperplate Gothic Light", Font.PLAIN, 14));
-		menuAppMasterList = new JMenuItem("Market List");
-		menuAppMasterList.addActionListener(new ActionListener() {
-			@Override
-			public void actionPerformed(ActionEvent arg0) {
-
-			}
-
-		});
 
 		menuAppAbout = new JMenuItem("About");
 		menuAppAbout.addActionListener(new ActionListener() {
@@ -194,22 +183,14 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		});
 
 		menuApplication.add(menuAppAbout);
-		menuApplication.add(menuAppMasterList);
 		menuApplication.add(menuAppFeedback);
 		menuApplication.add(menuAppExit);
 		menuBar.add(menuApplication);
 
-		lblTime = new JLabel("Time");
-		menuBar.add(lblTime);
-		lblTime.setFont(new Font("Copperplate Gothic Light", Font.PLAIN, 14));
-
-		lblDate = new JLabel("Date");
-		menuBar.add(lblDate);
-		lblDate.setFont(new Font("Copperplate Gothic Light", Font.PLAIN, 14));
-
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
 		setContentPane(contentPane);
+
 		GridBagLayout gbl_contentPane = new GridBagLayout();
 		gbl_contentPane.columnWidths = new int[] { 430, 210, 278, 383, 195, 0 };
 		gbl_contentPane.rowHeights = new int[] { 0, 2, 266, 266, 239, 0 };
@@ -226,6 +207,14 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		contentPane.add(btnNews, gbc_btnNews);
 		btnNews.addActionListener(this);
 
+		lblDate = new JLabel("");
+		lblDate.setFont((new Font("Copperplate Gothic Light", Font.PLAIN, 14)));
+		GridBagConstraints gbc_lblDate = new GridBagConstraints();
+		gbc_lblDate.insets = new Insets(0, 0, 5, 5);
+		gbc_lblDate.gridx = 3;
+		gbc_lblDate.gridy = 0;
+		contentPane.add(lblDate, gbc_lblDate);
+
 		JPanel dashboardPanel = new JPanel();
 		GridBagConstraints gbc_dashboardPanel = new GridBagConstraints();
 		gbc_dashboardPanel.gridheight = 5;
@@ -233,6 +222,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		gbc_dashboardPanel.gridx = 4;
 		gbc_dashboardPanel.gridy = 0;
 		contentPane.add(dashboardPanel, gbc_dashboardPanel);
+
 		GridBagLayout gbl_dashboardPanel = new GridBagLayout();
 		gbl_dashboardPanel.columnWidths = new int[] { 296, 0 };
 		gbl_dashboardPanel.rowHeights = new int[] { 0, 0, 0, 0, 0, 0, 31, 0, 21, 0, 31, 0, 0, 0, 0, 0, 56, 22, 56, 0 };
@@ -310,13 +300,13 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		Thread time = new Thread(new TimeKeeper());
 		time.start();
 
-		gbc_chartPanel = new GridBagConstraints();
-		gbc_chartPanel.gridwidth = 4;
-		gbc_chartPanel.gridheight = 3;
-		gbc_chartPanel.insets = new Insets(0, 0, 5, 5);
-		gbc_chartPanel.fill = GridBagConstraints.BOTH;
-		gbc_chartPanel.gridx = 0;
-		gbc_chartPanel.gridy = 2;
+		gbc_mainChartPanel = new GridBagConstraints();
+		gbc_mainChartPanel.gridwidth = 4;
+		gbc_mainChartPanel.gridheight = 3;
+		gbc_mainChartPanel.insets = new Insets(0, 0, 5, 5);
+		gbc_mainChartPanel.fill = GridBagConstraints.BOTH;
+		gbc_mainChartPanel.gridx = 0;
+		gbc_mainChartPanel.gridy = 2;
 
 		setVisible(true);
 	}
@@ -327,15 +317,10 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		@Override
 		public void run() {
 			while (true) {
-				dateFormat = new SimpleDateFormat("MM/dd/yyyy");
-				timeFormat = new SimpleDateFormat("HH:mm:ss");
-				date = new Date();
-				lblDate.setText(dateFormat.format(date));
+				Calendar cal = Calendar.getInstance();
+				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 
-				lblTime.setText(
-						"                                                                                                     "
-								+ timeFormat.format(date) + "     |     ");
-
+				lblDate.setText(String.format("%" + 10 + "s", dateFormat.format(cal.getTime())));
 			}
 		}
 	}
@@ -344,34 +329,15 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		TimeSeries localTimeSeries = new TimeSeries("Volume");
 
 		for (int i = 0; i < volumeDataDate.size(); i++) {
-			localTimeSeries.add(new Day(returnDay(volumeDataDate.get(i)), returnMonth(volumeDataDate.get(i)),
-					returnYear(volumeDataDate.get(i))), volumeDataNumber.get(i));
+			int day = volumeDataDate.get(i).getDay();
+			int year = volumeDataDate.get(i).getYear();
+			int month = volumeDataDate.get(i).getMonth();
+			double volume = volumeDataDate.get(i).getVolume();
+
+			localTimeSeries.add(new Day(day, month, year), volume);
 		}
 
 		return new TimeSeriesCollection(localTimeSeries);
-	}
-
-	private static int returnYear(String data) {
-
-		String[] array = data.split("-");
-
-		int year = Integer.parseInt(array[0]);
-		return year;
-	}
-
-	private static int returnDay(String data) {
-
-		String[] array = data.split("-");
-
-		int day = Integer.parseInt(array[2]);
-		return day;
-	}
-
-	private static int returnMonth(String data) {
-		String[] array = data.split("-");
-
-		int month = Integer.parseInt(array[1]);
-		return month;
 	}
 
 	private JFreeChart createChart(XYDataset priceData) throws IOException, ParseException {
@@ -379,11 +345,13 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		priceData = createDataset();
 
 		String title = "";
+
 		mainChart = ChartFactory.createTimeSeriesChart(title, "Date", "Volume", priceData, true, true, false);
 		mainChart.setBackgroundPaint(new Color(255, 255, 255, 0));
 		mainChart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
 		XYPlot plot = (XYPlot) mainChart.getPlot();
+
 		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
 		rangeAxis1.setLowerMargin(0);
 		DecimalFormat format = new DecimalFormat("###,###");
@@ -399,14 +367,25 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 		for (String date : headlinesAndDates.keySet()) {
 			ArrayList<String> headline = headlinesAndDates.get(date);
 
+			SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+			Calendar volumeDate = Calendar.getInstance();
+
+			try {
+				Date dates = formatter.parse(date);
+				volumeDate = Calendar.getInstance();
+				volumeDate.setTime(dates);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+
 			for (int i = 0; i < volumeDataDate.size(); i++) {
-				if (volumeDataDate.get(i).equals(date)) {
-					final Hour h = new Hour(2,
-							new Day(returnHeadLineDay(date), returnHeadLineMonth(date), returnHeadLineYear(date)));
-					final Minute m = new Minute(10, h);
-					double firstMillisecond = m.getFirstMillisecond();
-					final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(volumeDataDate.get(i),
-							firstMillisecond, volumeDataNumber.get(i), 3);
+				if (volumeDataDate.get(i).getCalendar().equals(volumeDate)) {
+					String formattedDate = changeDateFormat(date);
+					double volume = volumeDataDate.get(i).getVolume();
+					long time = volumeDataDate.get(i).getCalendar().getTimeInMillis();
+
+					final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(formattedDate, time, volume,
+							3);
 
 					XYLineAndShapeRenderer r = (XYLineAndShapeRenderer) plot.getRenderer();
 					r.setSeriesShape(0, ShapeUtilities.createDiamond(1));
@@ -429,11 +408,10 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 					headLineAnnotation.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
 					plot.addAnnotation(headLineAnnotation);
 
-					annotationPositions.put(headLineAnnotation.getText(),
+					annotationPositions.put(date,
 							new AnnotationPosition(headLineAnnotation.getX(), headLineAnnotation.getY()));
 
-					System.out.println(headLineAnnotation.getText() + " - " + headLineAnnotation.getX() + " and "
-							+ headLineAnnotation.getY());
+					System.out.println(date + " - " + headLineAnnotation.getX() + " and " + headLineAnnotation.getY());
 
 				}
 			}
@@ -496,6 +474,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 			dataset = createDataset();
 			chart = createChart(priceData);
 			priceData = createDataset();
+
 			mainChartPanel = new ChartPanel(chart);
 
 			CrosshairOverlay crosshairOverlay = new CrosshairOverlay();
@@ -510,6 +489,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 				@Override
 				public void chartMouseMoved(ChartMouseEvent event) {
 					Rectangle2D dataArea = mainChartPanel.getScreenDataArea();
+
 					JFreeChart chart = event.getChart();
 					XYPlot plot = (XYPlot) chart.getPlot();
 					ValueAxis xAxis = plot.getDomainAxis();
@@ -527,71 +507,64 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 			yCrosshair.setLabelVisible(true);
 			crosshairOverlay.addDomainCrosshair(xCrosshair);
 			crosshairOverlay.addRangeCrosshair(yCrosshair);
+
 			mainChartPanel.addOverlay(crosshairOverlay);
 
-			contentPane.add(mainChartPanel, gbc_chartPanel);
+			contentPane.add(mainChartPanel, gbc_mainChartPanel);
 		}
 
 		public void getData() throws IOException {
 			volumeDataDate.clear();
-			volumeDataNumber.clear();
 
-			long totalVolume = 0;
-			long currentVolumeValue = 0;
+			Calendar today = Calendar.getInstance();
 
-			String date = MainFrame.lblDate.getText();
-			/*
-			 * datesplitter[0] = month datesplitter[1] = day datesplitter[2] =
-			 * year must convert from string to integer, subtract the year then
-			 * back to string
-			 */
-			String datesplitter[] = date.split("/");
-			int yearBefore = Integer.parseInt(datesplitter[2]);
-			yearBefore = yearBefore - 1;
-			int monthBefore = Integer.parseInt(datesplitter[0]);
-			monthBefore = monthBefore - 1;
+			int todayDay = today.get(Calendar.DAY_OF_WEEK);
+			int todayMonth = today.get(Calendar.MONTH) + 1;
+			int todayYear = today.get(Calendar.YEAR);
 
-			logger.info("Starting to fetch historical data");
-			URL historical = new URL("http://ichart.finance.yahoo.com/table.csv?s=" + symbol + "&a="
-					+ String.valueOf(monthBefore) + "&b=" + dateFix(datesplitter[1]) + "&c="
-					+ String.valueOf(yearBefore) + "&d=" + datesplitter[0] + "&e=" + dateFix(datesplitter[1]) + "&f="
-					+ datesplitter[2] + "&g=d&ignore=.csv");
+			final URL url = new URL("http://ichart.finance.yahoo.com/table.csv?s=" + symbol + "&a=" + todayMonth + "&b="
+					+ todayDay + "&c=" + (todayYear - 1) + "&d=" + todayMonth + "&e=" + todayDay + "&f=" + todayYear
+					+ "&g=d&ignore=.csv");
+			final Reader reader = new InputStreamReader(new BOMInputStream(url.openStream()), "UTF-8");
+			final CSVParser parser = new CSVParser(reader, CSVFormat.EXCEL.withHeader());
 
-			BufferedReader hisdata = new BufferedReader(new InputStreamReader(historical.openStream()));
-			String inputLine2;
-			String vol;
+			try {
+				for (final CSVRecord record : parser) {
+					String date = record.get("Date");
+					String volume = record.get("Volume");
+					String open = record.get("Open");
+					String close = record.get("Close");
+					String high = record.get("High");
+					String low = record.get("Low");
 
-			URL currentVolume = new URL("http://finance.yahoo.com/d/quotes.csv?s=" + symbol + "&f=v");
-			BufferedReader curVol = new BufferedReader(new InputStreamReader(currentVolume.openStream()));
-
-			while ((vol = curVol.readLine()) != null) {
-				currentVolumeValue = Integer.parseInt(vol);
-			}
-
-			while ((inputLine2 = hisdata.readLine()) != null) {
-				String splitter[] = inputLine2.split(",");
-				if (splitter[5].contains("Volume")) {
-
-				} else {
-					// splitter[0] is the date
-					volumeDataDate.add(splitter[0]);
-					volumeDataNumber.add(Double.parseDouble(splitter[5]));
+					volumeDataDate.add(new VolumeDate(returnCalendarWithFormat(date), Double.parseDouble(volume),
+							Double.parseDouble(open), Double.parseDouble(close), Double.parseDouble(high),
+							Double.parseDouble(low)));
 				}
+			} finally {
+				parser.close();
+				reader.close();
 			}
 
 			logger.info("Finished fetching historical data");
 		}
+	}
 
-		// removes the beginning 0 in order to request csv for historical date
-		// properly
-		private String dateFix(String fixable) {
-			if (fixable.charAt(0) == '0') {
+	// returns with yyyy-mm-dd
+	private Calendar returnCalendarWithFormat(String date) {
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-				return fixable.replace("0", "");
-			}
+		try {
+			Date dates = formatter.parse(date);
+			Calendar volumeDate = Calendar.getInstance();
+			volumeDate.setTime(dates);
 
-			return fixable;
+			return volumeDate;
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
+
+		return null;
 	}
 
 	private void retrieveNews() throws IOException, ParseException {
@@ -604,20 +577,31 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 
 	private void getGeneralData() throws IOException {
 		URL generalData = new URL("http://finance.yahoo.com/d/quotes.csv?s=" + searchBox.getText() + "&f=mnxa2");
-		BufferedReader readData = new BufferedReader(new InputStreamReader(generalData.openStream()));
 
-		String inputLine[] = readData.readLine().split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)");
+		final Reader reader = new InputStreamReader(new BOMInputStream(generalData.openStream()), "UTF-8");
+		final CSVParser parser = new CSVParser(reader,
+				CSVFormat.EXCEL.withHeader("Range", "CompanyName", "Exchange", "AvgVolume"));
 
-		lblPressReleasesToBeAn.setText("PRs Analyzed: " + headlinesAndDates.size());
-		lblDayRange.setText("Day Range: " + removeQuotes(inputLine[0]));
-		lblCompanyName.setText("Name: " + removeQuotes(inputLine[1]));
-		lblExchange.setText("Exchange: " + removeQuotes(inputLine[2]));
+		try {
 
-		double dailyAmount = Double.parseDouble(removeQuotes(inputLine[3]));
-		DecimalFormat format = new DecimalFormat("#,###");
+			for (final CSVRecord record : parser) {
+				String range = record.get("Range");
+				String companyName = record.get("CompanyName");
+				String exchange = record.get("Exchange");
+				String avgVolume = record.get("AvgVolume");
 
-		lblAvgDailyVolume.setText("Avg. Daily Volume: " + removeQuotes(format.format(dailyAmount)));
+				GeneralData generalDataObject = new GeneralData(range, companyName, exchange, avgVolume);
 
+				lblDayRange.setText(String.format("Day Range: %s", generalDataObject.getRange()));
+				lblCompanyName.setText(String.format("Name: %s", generalDataObject.getCompanyName()));
+				lblExchange.setText(String.format("Exchange: %s", generalDataObject.getExchange()));
+				lblAvgDailyVolume.setText(String.format("Avg. Daily Volume: %s", generalDataObject.getAvgVolume()));
+				lblPressReleasesToBeAn.setText(String.format("PRs Analyzed: %s", headlinesAndDates.size()));
+			}
+		} finally {
+			parser.close();
+			reader.close();
+		}
 	}
 
 	private Map<String, ArrayList<String>> getHeadlinesAndDates(Document doc) throws ParseException {
@@ -650,34 +634,20 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 
 	public static String[] splitDates(String s) {
 		int index = 0;
+
 		for (int i = 0; i < 3; i++)
 			index = s.indexOf(",", index + 1);
 
 		return new String[] { s.substring(0, index), s.substring(index + 1) };
 	}
 
-	public static int returnHeadLineYear(String xlo) throws ParseException {
+	public static String changeDateFormat(String dateString) throws ParseException {
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = oldFormat.parse(xlo);
-		SimpleDateFormat newFormat = new SimpleDateFormat("yyyy");
+		Date date = oldFormat.parse(dateString);
+		SimpleDateFormat newFormat = new SimpleDateFormat("EEEE, MMM dd, yyyy");
+		newFormat.format(date);
 
-		return Integer.parseInt(newFormat.format(date));
-	}
-
-	public static int returnHeadLineDay(String xlo) throws ParseException {
-		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = oldFormat.parse(xlo);
-		SimpleDateFormat newFormat = new SimpleDateFormat("d");
-
-		return Integer.parseInt(newFormat.format(date));
-	}
-
-	public static int returnHeadLineMonth(String xlo) throws ParseException {
-		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
-		Date date = oldFormat.parse(xlo);
-		SimpleDateFormat newFormat = new SimpleDateFormat("MM");
-
-		return Integer.parseInt(newFormat.format(date));
+		return newFormat.format(date).toString();
 	}
 
 	// for the breakout board list - changing the colors
@@ -759,43 +729,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener, IS
 
 	@Override
 	public void keyTyped(KeyEvent arg0) {
-
-	}
-
-	@Override
-	public String removeQuotes(String fixable) {
-		return fixable.replaceAll("\"", "");
-	}
-
-	@Override
-	public String removeDash(String fixable) {
-		String fix[] = fixable.split(" ");
-		return fix[0] + "         " + fix[2];
-	}
-
-	@Override
-	public String removeSignAndPercent(String fixable) {
-		if (fixable.contains("-")) {
-
-			return fixable.replace("-", "").replace("%", "");
-
-		} else if (fixable.contains("+")) {
-
-			return fixable.replace("+", "").replace("%", "");
-
-		}
-
-		return null;
-	}
-
-	public static String extractBbName(String x) {
-		String newX = x.trim();
-		newX = newX.replaceAll("\"", "");
-
-		String[] splitter = newX.split("title=");
-		String[] splitter2 = splitter[1].split("href");
-
-		return splitter2[0].trim();
 
 	}
 }
