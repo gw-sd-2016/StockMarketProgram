@@ -101,6 +101,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public static ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
 	public static JTextField searchBox;
 	public static ChartPanel mainChartPanel;
+	public static ChartPanel defaultMainChartPanel;
 	public static GridBagConstraints gbc_mainChartPanel;
 	public static Map<String, String> newsHeadLines = new HashMap<String, String>();
 	public static Map<String, ArrayList<String>> headlinesAndDates;
@@ -113,6 +114,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	private JLabel lblDayRange;
 	private JLabel lblExchange;
 	public static JFreeChart mainChart;
+	public static JFreeChart defaultMainChart;
 
 	/**
 	 * Launch the application.
@@ -350,6 +352,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		mainChart.setBackgroundPaint(new Color(255, 255, 255, 0));
 		mainChart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
+		defaultMainChart = mainChart;
 		XYPlot plot = (XYPlot) mainChart.getPlot();
 
 		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
@@ -411,8 +414,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 					annotationPositions.put(date,
 							new AnnotationPosition(headLineAnnotation.getX(), headLineAnnotation.getY()));
 
-					System.out.println(date + " - " + headLineAnnotation.getX() + " and " + headLineAnnotation.getY());
-
 				}
 			}
 		}
@@ -426,11 +427,10 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			int panelHeight, String prDate) {
 		final CircleDrawer cd = new CircleDrawer(Color.BLUE, new BasicStroke(1.0f));
 		final XYAnnotation point = new XYDrawableAnnotation(x, y, 15, 15, cd);
+		final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(movement, x, y, 3);
 
 		XYPlot plot = (XYPlot) mainChart.getPlot();
 
-		final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(movement, x, y, 3);
-		plot.clearAnnotations();
 		plot.clearDomainMarkers();
 		plot.clearRangeMarkers();
 		plot.addAnnotation(point);
@@ -453,10 +453,17 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		Marker target = new IntervalMarker((double) startDate.getTimeInMillis(), (double) endDate.getTimeInMillis());
 		target.setPaint(Color.YELLOW);
+
 		plot.addDomainMarker(target, org.jfree.ui.Layer.BACKGROUND);
 		plot.addAnnotation(headLineAnnotation);
 
 		BufferedImage mainChartImage = mainChart.createBufferedImage(panelWidth, panelHeight);
+
+		if (mainChartPanel != null) {
+			plot.clearDomainMarkers();
+			plot.clearRangeMarkers();
+			plot.removeAnnotation(point);
+		}
 
 		return mainChartImage;
 	}
@@ -509,6 +516,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			crosshairOverlay.addRangeCrosshair(yCrosshair);
 
 			mainChartPanel.addOverlay(crosshairOverlay);
+
+			// defaultMainChart = chart;
 
 			contentPane.add(mainChartPanel, gbc_mainChartPanel);
 		}
@@ -710,6 +719,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 				}
 
 				new VolumeHistory();
+
 				getGeneralData();
 
 			} catch (IOException e1) {
