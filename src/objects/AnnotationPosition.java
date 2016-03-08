@@ -1,4 +1,4 @@
-package helpers;
+package objects;
 
 public class AnnotationPosition {
 	double positionX;
