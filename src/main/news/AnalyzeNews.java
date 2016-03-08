@@ -381,7 +381,6 @@ public class AnalyzeNews extends JFrame {
 		};
 
 		searchLoadingLabel = new JLabel("");
-		extendedTextPane.setToolTipText("");
 
 		extendedWordScrollPane.setViewportView(extendedTextPane);
 
@@ -677,6 +676,7 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		public void run() {
+			extendedTextPane.setToolTipText("");
 			extendedTextPane.setEnabled(false);
 			extendedWordScrollPane.setRowHeaderView(searchLoadingLabel);
 			extendedTextPane.setText("");
