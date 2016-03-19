@@ -427,13 +427,10 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			int panelHeight, String prDate) {
 		final CircleDrawer cd = new CircleDrawer(Color.BLUE, new BasicStroke(1.0f));
 		final XYAnnotation point = new XYDrawableAnnotation(x, y, 15, 15, cd);
-		final XYPointerAnnotation headLineAnnotation = new XYPointerAnnotation(movement, x, y, 3);
+		final XYPointerAnnotation movementAnnotation = new XYPointerAnnotation(movement, x, y, 3);
 
 		XYPlot plot = (XYPlot) mainChart.getPlot();
-
-		plot.clearDomainMarkers();
-		plot.clearRangeMarkers();
-		plot.addAnnotation(point);
+		plot.clearAnnotations();
 
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = null;
@@ -455,15 +452,12 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		target.setPaint(Color.YELLOW);
 
 		plot.addDomainMarker(target, org.jfree.ui.Layer.BACKGROUND);
-		plot.addAnnotation(headLineAnnotation);
+		plot.addAnnotation(movementAnnotation);
+		plot.addAnnotation(point);
 
 		BufferedImage mainChartImage = mainChart.createBufferedImage(panelWidth, panelHeight);
 
-		if (mainChartPanel != null) {
-			plot.clearDomainMarkers();
-			plot.clearRangeMarkers();
-			plot.removeAnnotation(point);
-		}
+		addAnnotationsBackAndRemoveMarkers(plot, point, movementAnnotation);
 
 		return mainChartImage;
 	}
@@ -557,6 +551,46 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 			logger.info("Finished fetching historical data");
 		}
+	}
+
+	private static void addAnnotationsBackAndRemoveMarkers(XYPlot plot, XYAnnotation point,
+			XYPointerAnnotation movementAnnotation) {
+		XYLineAndShapeRenderer r = (XYLineAndShapeRenderer) plot.getRenderer();
+		r.setSeriesShape(0, ShapeUtilities.createDiamond(1));
+		r.setSeriesShapesVisible(0, true);
+
+		int dismissDelay = ToolTipManager.sharedInstance().getDismissDelay();
+		// Keep the tool tip showing
+		dismissDelay = Integer.MAX_VALUE;
+		ToolTipManager.sharedInstance().setDismissDelay(dismissDelay);
+
+		// use html tags to break tooltiptext into separate
+		// lines
+		for (String annotationDate : annotationPositions.keySet()) {
+			XYPointerAnnotation headLineAnnotation;
+			String headlineList = "";
+
+			try {
+				headLineAnnotation = new XYPointerAnnotation(changeDateFormat(annotationDate),
+						annotationPositions.get(annotationDate).returnPositionX(),
+						annotationPositions.get(annotationDate).returnPositionY(), 3);
+
+				for (String name : headlinesAndDates.get(annotationDate)) {
+					headlineList += "- " + name + "<br>";
+				}
+
+				headLineAnnotation.setToolTipText("<html>" + headlineList + "</html>");
+				headLineAnnotation.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
+				plot.addAnnotation(headLineAnnotation);
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
+		}
+
+		plot.clearDomainMarkers();
+		plot.clearRangeMarkers();
+		plot.removeAnnotation(point);
+		plot.removeAnnotation(movementAnnotation);
 	}
 
 	// returns with yyyy-mm-dd
