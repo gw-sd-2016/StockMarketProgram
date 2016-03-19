@@ -1,11 +1,11 @@
 package tests;
 
-import static org.junit.Assert.*;
-
+import static org.junit.Assert.assertEquals;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import org.junit.Test;
+
 import main.news.AnalyzeNews;
 
 public class AnalyzeNewsTest {
@@ -27,6 +27,11 @@ public class AnalyzeNewsTest {
 		String result = AnalyzeNews.cleanText("@#$test&&");
 
 		assertEquals(result, "test");
+	}
+
+	@Test
+	public void extractMessageLinksTest() throws IOException {
+
 	}
 
 }

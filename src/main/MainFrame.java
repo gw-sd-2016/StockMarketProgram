@@ -594,7 +594,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	}
 
 	// returns with yyyy-mm-dd
-	private Calendar returnCalendarWithFormat(String date) {
+	public static Calendar returnCalendarWithFormat(String date) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
@@ -615,7 +615,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 				.connect("http://finance.yahoo.com/q/p?s=" + MainFrame.searchBox.getText() + "+Press+Releases").get();
 
 		getHeadlinesAndDates(doc);
-
 	}
 
 	private void getGeneralData() throws IOException {
@@ -647,7 +646,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
-	private Map<String, ArrayList<String>> getHeadlinesAndDates(Document doc) throws ParseException {
+	public static Map<String, ArrayList<String>> getHeadlinesAndDates(Document doc) throws ParseException {
 
 		ArrayList<String> messageTitles = null;
 		Elements newsDates = doc.select("div.mod.yfi_quote_headline.withsky > h3"); // 28
