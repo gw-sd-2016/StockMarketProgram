@@ -166,9 +166,9 @@ public class AnalyzeNews extends JFrame {
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		GridBagLayout gridBagLayout = new GridBagLayout();
-		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
+		gridBagLayout.columnWidths = new int[] { 0, 632, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
-		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
+		gridBagLayout.columnWeights = new double[] { 0.0, 0.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 1.0, 0.0, 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		getContentPane().setLayout(gridBagLayout);
 
@@ -335,57 +335,15 @@ public class AnalyzeNews extends JFrame {
 		gbc_twitterLoadingLabel.gridy = 4;
 		getContentPane().add(twitterLoadingLabel, gbc_twitterLoadingLabel);
 
-		class ImageToolTipUI extends MetalToolTipUI {
-			double annotationPosX = MainFrame.annotationPositions.get(prDate).returnPositionX();
-			double annotationPosY = MainFrame.annotationPositions.get(prDate).returnPositionY();
-
-			ImageIcon newImage = new ImageIcon(MainFrame.returnChartImageAndResize(prMovement, annotationPosX,
-					annotationPosY, MainFrame.mainChartPanel.getWidth(), MainFrame.mainChartPanel.getHeight(), prDate));
-
-			public void paint(Graphics g, JComponent c) {
-
-				FontMetrics metrics = c.getFontMetrics(g.getFont());
-				g.setColor(c.getForeground());
-				g.drawString(((JToolTip) c).getTipText(), 1, 1);
-				g.drawImage(newImage.getImage(), 1, metrics.getHeight(), c);
-			}
-
-			public Dimension getPreferredSize(JComponent c) {
-				FontMetrics metrics = c.getFontMetrics(c.getFont());
-				String tipText = ((JToolTip) c).getTipText();
-
-				if (tipText == null) {
-					tipText = "";
-				}
-
-				Image image = newImage.getImage();
-
-				int width = SwingUtilities.computeStringWidth(metrics, tipText);
-				int height = metrics.getHeight() + image.getHeight(c);
-
-				if (width < image.getWidth(c)) {
-					width = image.getWidth(c);
-				}
-
-				return new Dimension(width, height);
-			}
-		}
-
-		class ImageToolTip extends JToolTip {
-			public ImageToolTip() {
-				setUI(new ImageToolTipUI());
-			}
-		}
-
 		searchLoadingLabel = new JLabel("");
 
-		panel_1 = new JPanel();
-		GridBagConstraints gbc_panel_1 = new GridBagConstraints();
-		gbc_panel_1.insets = new Insets(0, 0, 5, 0);
-		gbc_panel_1.fill = GridBagConstraints.BOTH;
-		gbc_panel_1.gridx = 2;
-		gbc_panel_1.gridy = 4;
-		getContentPane().add(panel_1, gbc_panel_1);
+		highlightedChartPanel = new JPanel();
+		GridBagConstraints gbc_highlightedChartPanel = new GridBagConstraints();
+		gbc_highlightedChartPanel.insets = new Insets(0, 0, 5, 0);
+		gbc_highlightedChartPanel.fill = GridBagConstraints.BOTH;
+		gbc_highlightedChartPanel.gridx = 2;
+		gbc_highlightedChartPanel.gridy = 4;
+		getContentPane().add(highlightedChartPanel, gbc_highlightedChartPanel);
 
 		twitterResultPanel = new JPanel();
 		GridBagConstraints gbc_twitterResultPanel = new GridBagConstraints();
@@ -404,11 +362,6 @@ public class AnalyzeNews extends JFrame {
 
 		twitterNeutLabel = new JLabel("Neutral: ");
 		twitterResultPanel.add(twitterNeutLabel);
-
-		// images are 12x11 for consistency
-		BufferedImage redImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightRed.png"));
-		BufferedImage greenImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGreen.png"));
-		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
 
 		twitterLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
@@ -806,11 +759,12 @@ public class AnalyzeNews extends JFrame {
 			// searchKeyPanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5,
 			// 5));
 			lblNewLabel_1 = new JLabel();
-			panel_1.add(lblNewLabel_1);
+			highlightedChartPanel.add(lblNewLabel_1);
 			// searchKeyPanel.add(lblNewLabel);
 
-			lblNewLabel_1.setIcon(
-					new ImageIcon(getScaledImage(newImage.getImage(), panel_1.getWidth(), panel_1.getHeight())));
+			lblNewLabel_1.setIcon(new ImageIcon(getScaledImage(newImage.getImage(), highlightedChartPanel.getWidth(),
+					highlightedChartPanel.getHeight())));
+
 			getContentPane().repaint();
 		}
 	}
@@ -1045,7 +999,7 @@ public class AnalyzeNews extends JFrame {
 	private JPanel panel;
 	private JTextPane extendedTextPane;
 	private JLabel lblNewLabel;
-	private JPanel panel_1;
+	private JPanel highlightedChartPanel;
 	private JLabel lblNewLabel_1;
 
 	private ArrayList<String> extractMessageLinks(Document doc) {
