@@ -18,6 +18,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
@@ -41,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
 import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
@@ -1267,17 +1269,6 @@ public class AnalyzeNews extends JFrame {
 		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
 			result.setValue(TopicIdentification.CATEGORIES[i],
 					Math.abs(new Double(Math.abs(TopicIdentification.rankings.get(title)[i]))) / 1000);
-		}
-
-		return result;
-	}
-
-	private PieDataset createDefaultDataSetForPiechart(String title) {
-
-		final DefaultPieDataset result = new DefaultPieDataset();
-
-		for (int i = 0; i < TopicIdentification.CATEGORIES.length; i++) {
-			result.setValue(TopicIdentification.CATEGORIES[i], 0);
 		}
 
 		return result;
