@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import org.junit.Test;
-
 import main.news.AnalyzeNews;
 
 public class AnalyzeNewsTest {
@@ -30,8 +29,16 @@ public class AnalyzeNewsTest {
 	}
 
 	@Test
+	public void wordCountTest() throws IOException {
+		String test = "This is a test sentence in order to get the word count.";
+
+		int result = AnalyzeNews.wordCount(test);
+
+		assertEquals(result, 12);
+	}
+
+	@Test
 	public void extractMessageLinksTest() throws IOException {
 
 	}
-
 }
