@@ -756,7 +756,7 @@ public class AnalyzeNews extends JFrame {
 					ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
 
 					for (String ss : headline) {
-						if ((ss.replaceAll("'", " ") + ".txt").equals(prTitle)) {
+						if ((cleanText(ss) + ".txt").equals(cleanText(prTitle))) {
 							prDate = date;
 						}
 					}
