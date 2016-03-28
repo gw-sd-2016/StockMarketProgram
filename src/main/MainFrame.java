@@ -136,7 +136,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		try {
 			MainFrame main = new MainFrame();
-			main.setTitle("Stock Analyzer");
+			main.setTitle("Investor PAL");
 		} catch (Exception e) {
 			new CheckInternet();
 		}
@@ -157,16 +157,19 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		menuBar = new JMenuBar();
 		// Set this instance as the application's menu bar
 		setJMenuBar(menuBar);
-		menuApplication = new JMenu("Stock Analyzer");
+		menuApplication = new JMenu("Investor PAL");
 		menuApplication.setFont(new Font("Copperplate Gothic Light", Font.PLAIN, 14));
 
 		menuAppAbout = new JMenuItem("About");
 		menuAppAbout.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				new AboutMenu();
+				try {
+					new AboutMenu();
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
 			}
-
 		});
 
 		menuAppFeedback = new JMenuItem("Send Feedback");
