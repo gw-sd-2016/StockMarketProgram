@@ -26,6 +26,7 @@ public class AboutMenu extends JFrame {
 	private JLabel lblDellolio;
 
 	public AboutMenu() throws IOException {
+		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
 		setBounds(10, 10, 300, 200);
 		contentPane = new JPanel();
@@ -41,7 +42,8 @@ public class AboutMenu extends JFrame {
 
 		BufferedImage logoImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/logo.png"));
 		logo = new JLabel("");
-		logo.setIcon(new ImageIcon(new ImageIcon(logoImage).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT)));
+		logo.setIcon(
+				new ImageIcon(new ImageIcon(logoImage).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT)));
 		GridBagConstraints gbc_logo = new GridBagConstraints();
 		gbc_logo.insets = new Insets(0, 0, 5, 0);
 		gbc_logo.gridx = 0;
@@ -56,7 +58,7 @@ public class AboutMenu extends JFrame {
 		gbc_version.gridx = 0;
 		gbc_version.gridy = 1;
 		contentPane.add(version, gbc_version);
-		
+
 		lblDellolio = new JLabel("Dellolio");
 		GridBagConstraints gbc_lblDellolio = new GridBagConstraints();
 		gbc_lblDellolio.gridx = 0;
@@ -70,5 +72,4 @@ public class AboutMenu extends JFrame {
 		setVisible(true);
 		setResizable(false);
 	}
-
 }
