@@ -118,6 +118,8 @@ import main.MainFrame;
 import objects.IntegerPair;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
+import javax.swing.border.TitledBorder;
+import javax.swing.UIManager;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -148,6 +150,7 @@ public class AnalyzeNews extends JFrame {
 	private Color highlightGray = new Color(198, 204, 201);
 	private JPanel twitterResultPanel;
 	private JPanel searchKeyPanel;
+	private JPanel borderPanel;
 	private JLabel twitterNegLabel;
 	private JLabel twitterPosLabel;
 	private JLabel twitterNeutLabel;
@@ -156,6 +159,8 @@ public class AnalyzeNews extends JFrame {
 	private JLabel sectorLoadingLabel;
 	private JLabel sigTermsLoadingLabel;
 	private JLabel searchLoadingLabel;
+	private JLabel lblSeen;
+	private JLabel lblWord;
 	private JTextComponent informationTextField;
 	private JTextPane extendedTextPane;
 
@@ -404,7 +409,7 @@ public class AnalyzeNews extends JFrame {
 
 		searchKeyPanel = new JPanel();
 		GridBagConstraints gbc_searchKeyPanel = new GridBagConstraints();
-		gbc_searchKeyPanel.fill = GridBagConstraints.BOTH;
+		gbc_searchKeyPanel.fill = GridBagConstraints.VERTICAL;
 		gbc_searchKeyPanel.gridx = 2;
 		gbc_searchKeyPanel.gridy = 5;
 		getContentPane().add(searchKeyPanel, gbc_searchKeyPanel);
@@ -415,10 +420,10 @@ public class AnalyzeNews extends JFrame {
 		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
 
 		GridBagLayout gbl_searchKeyPanel = new GridBagLayout();
-		gbl_searchKeyPanel.columnWidths = new int[] { 459, 67, 86, 59, 0 };
-		gbl_searchKeyPanel.rowHeights = new int[] { 20, 0, 0, 0 };
-		gbl_searchKeyPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_searchKeyPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_searchKeyPanel.columnWidths = new int[] { 67, 86, 59, 0 };
+		gbl_searchKeyPanel.rowHeights = new int[] { 20, 0, 0 };
+		gbl_searchKeyPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		gbl_searchKeyPanel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
 		searchKeyPanel.setLayout(gbl_searchKeyPanel);
 
 		JLabel positiveLabel = new JLabel("Negative");
@@ -428,7 +433,7 @@ public class AnalyzeNews extends JFrame {
 		GridBagConstraints gbc_positiveLabel = new GridBagConstraints();
 		gbc_positiveLabel.anchor = GridBagConstraints.NORTHWEST;
 		gbc_positiveLabel.insets = new Insets(0, 0, 5, 5);
-		gbc_positiveLabel.gridx = 1;
+		gbc_positiveLabel.gridx = 0;
 		gbc_positiveLabel.gridy = 0;
 		searchKeyPanel.add(positiveLabel, gbc_positiveLabel);
 
@@ -439,7 +444,7 @@ public class AnalyzeNews extends JFrame {
 		GridBagConstraints gbc_negativeLabel = new GridBagConstraints();
 		gbc_negativeLabel.anchor = GridBagConstraints.NORTH;
 		gbc_negativeLabel.insets = new Insets(0, 0, 5, 5);
-		gbc_negativeLabel.gridx = 2;
+		gbc_negativeLabel.gridx = 1;
 		gbc_negativeLabel.gridy = 0;
 		searchKeyPanel.add(negativeLabel, gbc_negativeLabel);
 
@@ -450,7 +455,7 @@ public class AnalyzeNews extends JFrame {
 		GridBagConstraints gbc_neutralLabel = new GridBagConstraints();
 		gbc_neutralLabel.insets = new Insets(0, 0, 5, 0);
 		gbc_neutralLabel.anchor = GridBagConstraints.NORTHWEST;
-		gbc_neutralLabel.gridx = 3;
+		gbc_neutralLabel.gridx = 2;
 		gbc_neutralLabel.gridy = 0;
 
 		searchKeyPanel.add(neutralLabel, gbc_neutralLabel);
@@ -465,13 +470,45 @@ public class AnalyzeNews extends JFrame {
 
 		searchLoadingLabel.setVisible(false);
 
-		lblAverageScore = new JLabel("Average Score: - / 3.0");
-		GridBagConstraints gbc_lblAverageScore = new GridBagConstraints();
-		gbc_lblAverageScore.insets = new Insets(0, 0, 5, 5);
-		gbc_lblAverageScore.gridx = 2;
-		gbc_lblAverageScore.gridy = 1;
+		borderPanel = new JPanel();
+		borderPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Statistics",
+				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+		GridBagConstraints gbc_borderPanel = new GridBagConstraints();
+		gbc_borderPanel.fill = GridBagConstraints.VERTICAL;
+		gbc_borderPanel.gridwidth = 3;
+		gbc_borderPanel.insets = new Insets(0, 0, 0, 5);
+		gbc_borderPanel.gridx = 0;
+		gbc_borderPanel.gridy = 1;
+		searchKeyPanel.add(borderPanel, gbc_borderPanel);
+		GridBagLayout gbl_borderPanel = new GridBagLayout();
+		gbl_borderPanel.columnWidths = new int[] { 74, 86, 0 };
+		gbl_borderPanel.rowHeights = new int[] { 0, 0, 0, 0 };
+		gbl_borderPanel.columnWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
+		gbl_borderPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+		borderPanel.setLayout(gbl_borderPanel);
 
-		searchKeyPanel.add(lblAverageScore, gbc_lblAverageScore);
+		lblWord = new JLabel("Word: -");
+		GridBagConstraints gbc_lblWord = new GridBagConstraints();
+		gbc_lblWord.anchor = GridBagConstraints.WEST;
+		gbc_lblWord.insets = new Insets(0, 0, 5, 5);
+		gbc_lblWord.gridx = 0;
+		gbc_lblWord.gridy = 0;
+		borderPanel.add(lblWord, gbc_lblWord);
+
+		lblSeen = new JLabel("Seen: -");
+		GridBagConstraints gbc_lblSeen = new GridBagConstraints();
+		gbc_lblSeen.anchor = GridBagConstraints.WEST;
+		gbc_lblSeen.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSeen.gridx = 0;
+		gbc_lblSeen.gridy = 1;
+		borderPanel.add(lblSeen, gbc_lblSeen);
+
+		lblAverageScore = new JLabel("Average Score: -");
+		GridBagConstraints gbc_lblAverageScore = new GridBagConstraints();
+		gbc_lblAverageScore.gridwidth = 3;
+		gbc_lblAverageScore.gridx = 0;
+		gbc_lblAverageScore.gridy = 2;
+		borderPanel.add(lblAverageScore, gbc_lblAverageScore);
 
 		gbc_pieChartPanel = new GridBagConstraints();
 		gbc_pieChartPanel.insets = new Insets(0, 0, 5, 0);
@@ -740,13 +777,18 @@ public class AnalyzeNews extends JFrame {
 				searchLoadingLabel.setVisible(false);
 				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
 
-				lblAverageScore.setText("Average Score: - / 3.0");
+				lblAverageScore.setText("Average Score: -");
 			} else if (type.equals("Press Release")) {
 				ArrayList<Double> scores = new ArrayList<Double>();
 				String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
 				String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
 				String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
+				String prMvmt = informationTable.getModel().getValueAt(row, 4).toString();
 				String sentenceList = "";
+				int timesSeen = (int) informationTable.getModel().getValueAt(row, 3);
+				int prContentWordCount = wordCount(prContent);
+
+				System.out.println(prContentWordCount);
 
 				prMovement = informationTable.getModel().getValueAt(row, 4).toString();
 
@@ -854,7 +896,11 @@ public class AnalyzeNews extends JFrame {
 
 				DecimalFormat df = new DecimalFormat("####0.00");
 
-				lblAverageScore.setText("Average Score: " + df.format(averageScore(scores)) + " / 3.0");
+				lblAverageScore
+						.setText("Average Score: " + df.format((averageScore(scores) / 3.0) * 100) + "% - " + prMvmt);
+				lblWord.setText("Word: " + wordToSearch);
+				lblSeen.setText("Seen: " + String.valueOf(timesSeen) + " / " + prContentWordCount);
+
 				extendedTextPane.setCaretPosition(0);
 				extendedTextPane.setEnabled(true);
 				searchLoadingLabel.setVisible(false);
@@ -873,6 +919,12 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		return sum / scores.size();
+	}
+
+	public static int wordCount(String content) {
+		String[] wordArray = content.split("\\s+");
+
+		return wordArray.length;
 	}
 
 	// cleans text since files can't have certain characters
