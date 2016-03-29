@@ -11,6 +11,7 @@ import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -165,6 +166,8 @@ public class AnalyzeNews extends JFrame {
 	private JTextPane extendedTextPane;
 
 	public AnalyzeNews() throws IOException {
+
+		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		GridBagLayout gridBagLayout = new GridBagLayout();
