@@ -7,10 +7,11 @@ import java.awt.GradientPaint;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Point;
+import java.awt.Rectangle;
+import java.awt.Shape;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
@@ -23,11 +24,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
-import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
 import java.text.BreakIterator;
+import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,6 +59,8 @@ import javax.swing.JTextPane;
 import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.border.TitledBorder;
 import javax.swing.plaf.metal.MetalToolTipUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -74,11 +77,12 @@ import org.jdesktop.swingx.prompt.PromptSupport;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.LegendItem;
+import org.jfree.chart.LegendItemCollection;
+import org.jfree.chart.annotations.XYTextAnnotation;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.axis.NumberTickUnit;
-import org.jfree.chart.axis.SymbolAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PiePlot3D;
 import org.jfree.chart.plot.PlotOrientation;
@@ -100,8 +104,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import analyzers.SignificantPhrases;
 import analyzers.TopicIdentification;
-import de.l3s.boilerpipe.BoilerpipeProcessingException;
-import de.l3s.boilerpipe.extractors.ArticleExtractor;
 import edu.stanford.nlp.ling.CoreAnnotations;
 import edu.stanford.nlp.ling.HasWord;
 import edu.stanford.nlp.ling.Sentence;
@@ -119,8 +121,6 @@ import main.MainFrame;
 import objects.IntegerPair;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
-import javax.swing.border.TitledBorder;
-import javax.swing.UIManager;
 
 public class AnalyzeNews extends JFrame {
 	private Set<String> stopWordList = new HashSet<String>();
@@ -149,12 +149,8 @@ public class AnalyzeNews extends JFrame {
 	private Color highlightRed = new Color(242, 44, 67);
 	private Color highlightGreen = new Color(44, 242, 153);
 	private Color highlightGray = new Color(198, 204, 201);
-	private JPanel twitterResultPanel;
 	private JPanel searchKeyPanel;
 	private JPanel borderPanel;
-	private JLabel twitterNegLabel;
-	private JLabel twitterPosLabel;
-	private JLabel twitterNeutLabel;
 	private JLabel lblAverageScore;
 	private JLabel twitterLoadingLabel;
 	private JLabel sectorLoadingLabel;
@@ -166,7 +162,7 @@ public class AnalyzeNews extends JFrame {
 	private JTextPane extendedTextPane;
 
 	public AnalyzeNews() throws IOException {
-
+		setTitle("Investor PAL");
 		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
@@ -392,24 +388,6 @@ public class AnalyzeNews extends JFrame {
 
 		extendedWordScrollPane.setViewportView(extendedTextPane);
 
-		twitterResultPanel = new JPanel();
-		GridBagConstraints gbc_twitterResultPanel = new GridBagConstraints();
-		gbc_twitterResultPanel.insets = new Insets(0, 0, 0, 5);
-		gbc_twitterResultPanel.fill = GridBagConstraints.VERTICAL;
-		gbc_twitterResultPanel.gridx = 1;
-		gbc_twitterResultPanel.gridy = 5;
-		getContentPane().add(twitterResultPanel, gbc_twitterResultPanel);
-		twitterResultPanel.setLayout(new GridLayout(1, 0, 0, 0));
-
-		twitterPosLabel = new JLabel("Positive: ");
-		twitterResultPanel.add(twitterPosLabel);
-
-		twitterNegLabel = new JLabel("Negative: ");
-		twitterResultPanel.add(twitterNegLabel);
-
-		twitterNeutLabel = new JLabel("Neutral: ");
-		twitterResultPanel.add(twitterNeutLabel);
-
 		searchKeyPanel = new JPanel();
 		GridBagConstraints gbc_searchKeyPanel = new GridBagConstraints();
 		gbc_searchKeyPanel.fill = GridBagConstraints.VERTICAL;
@@ -476,6 +454,7 @@ public class AnalyzeNews extends JFrame {
 		borderPanel = new JPanel();
 		borderPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Statistics",
 				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
+
 		GridBagConstraints gbc_borderPanel = new GridBagConstraints();
 		gbc_borderPanel.fill = GridBagConstraints.VERTICAL;
 		gbc_borderPanel.gridwidth = 3;
@@ -483,6 +462,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_borderPanel.gridx = 0;
 		gbc_borderPanel.gridy = 1;
 		searchKeyPanel.add(borderPanel, gbc_borderPanel);
+
 		GridBagLayout gbl_borderPanel = new GridBagLayout();
 		gbl_borderPanel.columnWidths = new int[] { 74, 86, 0 };
 		gbl_borderPanel.rowHeights = new int[] { 0, 0, 0, 0 };
@@ -1129,20 +1109,19 @@ public class AnalyzeNews extends JFrame {
 				tweetSentimentAndContent.put(sentence.toString(), sentiment);
 			}
 
-			wordFrequency(fullResult, twitterPosLabel);
-
 			final XYDataset dataset = createDatasetTwitter(tweetSentimentAndContent);
-			JFreeChart chart = null;
+
 			try {
-				chart = createChartTwitter(dataset, twitter.tweetTimeAndContent);
+				JFreeChart chart = createChartTwitter(dataset, twitter.tweetTimeAndContent, fullResult,
+						tweetSentimentAndContent.size());
 				chart.setBackgroundPaint(new Color(255, 255, 255, 0));
 				chart.setPadding(new RectangleInsets(10, 5, 5, 5));
+
+				twitterChartPanel = new ChartPanel(chart);
+				twitterLoadingLabel.setVisible(false);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-
-			twitterChartPanel = new ChartPanel(chart);
-			twitterLoadingLabel.setVisible(false);
 
 			getContentPane().add(twitterChartPanel, gbc_twitterChartPanel);
 			getContentPane().revalidate();
@@ -1169,41 +1148,41 @@ public class AnalyzeNews extends JFrame {
 
 		DefaultXYDataset result = new DefaultXYDataset();
 
-		XYSeries series1 = new XYSeries("Words");
+		XYSeries seriesOne = new XYSeries("Tweet");
 
 		int numberTweet = 0;
 
 		for (String sentence : tweetSentiment.keySet()) {
 			if (tweetSentiment.get(sentence).equals("Positive")) {
-				series1.add(1, numberTweet);
+				seriesOne.add(1, numberTweet);
 			} else if (tweetSentiment.get(sentence).equals("Negative")) {
-				series1.add(-1, numberTweet);
+				seriesOne.add(-1, numberTweet);
 			} else if (tweetSentiment.get(sentence).equals("Neutral")) {
-				series1.add(0, numberTweet);
+				seriesOne.add(0, numberTweet);
 			}
 
 			numberTweet++;
 		}
 
-		result.addSeries(getTitle(), series1.toArray());
+		result.addSeries(getTitle(), seriesOne.toArray());
 
 		return result;
-
 	}
 
-	private JFreeChart createChartTwitter(final XYDataset dataset, Map<Date, String> tweetDateAndContent)
-			throws ParseException {
-
+	private JFreeChart createChartTwitter(final XYDataset dataset, Map<Date, String> tweetDateAndContent,
+			String sentimentAmount, int numberOfTweets) throws ParseException {
+		DateFormat dateFormat = new SimpleDateFormat("MMMM dd yyyy");
 		String fromDate = "";
 		String toDate = "";
 
 		int x = 0;
-		for (Date d : tweetDateAndContent.keySet()) {
-			if (x == 0) {
-				fromDate = d.toString();
-			} else if (x == tweetDateAndContent.size() - 1) {
-				toDate = d.toString();
 
+		for (Date d : tweetDateAndContent.keySet()) {
+
+			if (x == 0) {
+				fromDate = dateFormat.format(d);
+			} else if (x == tweetDateAndContent.size() - 1) {
+				toDate = dateFormat.format(d);
 			}
 
 			x++;
@@ -1212,7 +1191,7 @@ public class AnalyzeNews extends JFrame {
 		final JFreeChart chart = ChartFactory.createXYLineChart(fromDate + " - " + toDate, // chart
 																							// title
 				"Sentiment", // x axis label
-				"Y", // y axis label
+				"Time", // y axis label
 				dataset, // data
 				PlotOrientation.HORIZONTAL, true, // include legend
 				true, // tooltips
@@ -1222,78 +1201,50 @@ public class AnalyzeNews extends JFrame {
 		XYPlot plot = (XYPlot) chart.getPlot();
 		plot.setForegroundAlpha(0.5f);
 
-		SymbolAxis rangeAxis = new SymbolAxis("Time", listOfDates(tweetDateAndContent));
+		LegendItemCollection chartLegend = new LegendItemCollection();
+		Shape shape = new Rectangle(10, 10);
+		chartLegend.add(new LegendItem("Tweet", null, null, null, shape, new Color(255, 99, 115)));
 
-		rangeAxis.setTickUnit(new NumberTickUnit(1));
-		rangeAxis.setRange(0, listOfDates(tweetDateAndContent).length);
-		plot.setRangeAxis(rangeAxis);
+		plot.setFixedLegendItems(chartLegend);
+
+		// SymbolAxis rangeAxis = new SymbolAxis(null,
+		// listOfDates(tweetDateAndContent));
+		//
+		// rangeAxis.setTickUnit(new NumberTickUnit(1));
+		// rangeAxis.setRange(0, listOfDates(tweetDateAndContent).length);
+		// plot.setRangeAxis(rangeAxis);
 
 		final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 		renderer.setSeriesLinesVisible(0, false);
 		renderer.setSeriesShapesVisible(1, false);
 		plot.setRenderer(renderer);
 
+		Map<String, Integer> sentimentFrequencies = wordFrequency(sentimentAmount);
+
+		int negative = wordFrequency(sentimentAmount).get("negative") != null ? sentimentFrequencies.get("negative")
+				: 0;
+		int positive = sentimentFrequencies.get("positive") != null ? sentimentFrequencies.get("positive") : 0;
+		int neutral = sentimentFrequencies.get("neutral") != null ? sentimentFrequencies.get("neutral") : 0;
+
+		XYTextAnnotation headLineAnnotation = new XYTextAnnotation("Positive: " + positive, .5,
+				calculateAnnotationOffset(numberOfTweets));
+		XYTextAnnotation headLineAnnotation2 = new XYTextAnnotation("Neutral: " + neutral, .4,
+				calculateAnnotationOffset(numberOfTweets));
+		XYTextAnnotation headLineAnnotation3 = new XYTextAnnotation("Negative: " + negative, .3,
+				calculateAnnotationOffset(numberOfTweets));
+
+		plot.addAnnotation(headLineAnnotation);
+		plot.addAnnotation(headLineAnnotation2);
+		plot.addAnnotation(headLineAnnotation3);
+
 		return chart;
-
 	}
 
-	public String returnTime(String fix) {
-		String splitter[] = fix.split(" ");
-		return splitter[3];
-	}
+	public static int calculateAnnotationOffset(int numberOfTweets) {
+		int base = 20;
+		int offset = 2;
 
-	private String[] listOfDates(Map<Date, String> tweetDateAndContent) throws ParseException {
-		ArrayList<String> result = new ArrayList<String>();
-
-		for (Date d : tweetDateAndContent.keySet()) {
-			SimpleDateFormat oldFormat = new SimpleDateFormat("EE MMM dd HH:mm:ss z yyyy");
-			Date date = oldFormat.parse(d.toString());
-			SimpleDateFormat newFormat = new SimpleDateFormat("yyyy-MM-dd");
-			result.add(newFormat.format(date));
-		}
-
-		String[] stockArr = new String[result.size()];
-		stockArr = result.toArray(stockArr);
-
-		return stockArr;
-
-	}
-
-	public Map<String, Integer> wordFrequency(String xlo, JLabel printArea) {
-		Map<String, Integer> myMap = new HashMap<String, Integer>();
-
-		String words = xlo;
-		String lowerCase = words.toLowerCase();
-		String alphaOnly = lowerCase.replaceAll("\\W", " "); // Replaces all
-																// special
-																// characters
-		String finalString = alphaOnly.replaceAll("[0-9]", " "); // Gets rid of
-																	// numbers
-		String[] array = finalString.split("\\s+");
-
-		for (String name : array) {
-			if (myMap.containsKey(name)) {
-				int count = myMap.get(name);
-				myMap.put(name, count + 1);
-
-			} else {
-				myMap.put(name, 1);
-			}
-		}
-
-		printMap(myMap, printArea);
-		return myMap;
-	}
-
-	// FIX ARGUMENTS
-	public void printMap(Map<String, Integer> map, JLabel printArea) {
-		int negative = map.get("negative") != null ? map.get("negative") : 0;
-		int positive = map.get("positive") != null ? map.get("positive") : 0;
-		int neutral = map.get("neutral") != null ? map.get("neutral") : 0;
-
-		twitterNegLabel.setText("Negative: " + negative + " ");
-		twitterPosLabel.setText("Positive: " + positive + " ");
-		twitterNeutLabel.setText("Neutral: " + neutral + " ");
+		return numberOfTweets - ((offset * numberOfTweets) / base);
 	}
 
 	private void appendToPane(JTextPane tp, String msg, Color c) {
@@ -1343,20 +1294,19 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private CategoryDataset createDatasetForBarChart() {
-		final String series1 = "Significant Terms";
+		final String seriesOne = "Significant Terms";
 		final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
 
 		for (Entry<Double, String> entry : SignificantPhrases.training.entrySet()) {
-			dataset.addValue(entry.getKey(), series1, entry.getValue());
+			dataset.addValue(entry.getKey(), seriesOne, entry.getValue());
 		}
 
 		return dataset;
-
 	}
 
 	private JFreeChart createBarChart(final CategoryDataset dataset) {
 		final JFreeChart chart = ChartFactory.createBarChart(MainFrame.lblCompanyName.getText().replace("Name: ", ""),
-				"Category", "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
+				null, "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
 
 		chart.setBackgroundPaint(Color.white);
 		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
