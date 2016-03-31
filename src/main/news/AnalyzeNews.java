@@ -664,14 +664,10 @@ public class AnalyzeNews extends JFrame {
 			for (String s : extractMessageLinks(doc)) {
 				if (cacheISNeeded || !fileExists) {
 					try {
-
-						URL url = new URL(s);
-						String text = ArticleExtractor.INSTANCE.getText(url);
-						String cleanText = text.substring(text.indexOf("Done") + 4).trim().replaceAll(" +", " ");
-						writeToCacheFile(cleanText, symbol, headlinesForFiles.get(numberOfFiles++));
+						Document jSoupDoc = Jsoup.connect(s).get();
+						Elements ps = jSoupDoc.select("p");
+						writeToCacheFile(ps.text(), symbol, headlinesForFiles.get(numberOfFiles++));
 					} catch (IOException e) {
-						new CheckInternet();
-					} catch (BoilerpipeProcessingException e) {
 						new CheckInternet();
 					}
 				}
