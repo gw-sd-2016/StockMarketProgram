@@ -38,6 +38,15 @@ public class AnalyzeNewsTest {
 	}
 
 	@Test
+	public void calculateAnnotationOffsetTest() {
+		int numberOfTweets = 300;
+
+		int result = AnalyzeNews.calculateAnnotationOffset(numberOfTweets);
+
+		assertEquals(result, 270);
+	}
+
+	@Test
 	public void extractMessageLinksTest() throws IOException {
 
 	}
