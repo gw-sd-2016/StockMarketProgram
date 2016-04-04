@@ -326,7 +326,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		public void run() {
 			while (true) {
 				Calendar cal = Calendar.getInstance();
-				DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+				DateFormat dateFormat = new SimpleDateFormat("MMMM dd, YYYY  -  h:mm:ss a");
 
 				lblDate.setText(String.format("%" + 10 + "s", dateFormat.format(cal.getTime())));
 			}
