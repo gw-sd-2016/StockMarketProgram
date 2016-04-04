@@ -182,6 +182,10 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
 
 		headLineTable = new JTable() {
+			public boolean isCellEditable(int row, int column) {
+				return column == 4;
+			}
+
 			// Implement table cell tool tips.
 			public String getToolTipText(MouseEvent e) {
 				String tip = null;
@@ -200,29 +204,25 @@ public class AnalyzeNews extends JFrame {
 		};
 
 		headLineTable.setModel(new DefaultTableModel(new Object[][] {},
-				new String[] { "Number", "Headline", "Date", "Movement", "Days After Press Release", "Content" }) {
+				new String[] { "#", "Headline", "Date", "Movement", "Content" }) {
 			Class[] columnTypes = new Class[] { String.class, Integer.class, String.class, String.class, String.class,
 					Integer.class };
 
 			public Class getColumnClass(int columnIndex) {
 				return columnTypes[columnIndex];
 			}
-
-			boolean[] columnEditables = new boolean[] { false, true, true, true, true, true };
-
-			public boolean isCellEditable(int row, int column) {
-
-				return columnEditables[column];
-			}
 		});
 
-		headLineTable.getColumnModel().getColumn(2).setPreferredWidth(225);
-		headLineTable.getColumnModel().getColumn(4).setPreferredWidth(224);
-		headLineTable.getColumnModel().getColumn(5).setPreferredWidth(204);
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment(JLabel.LEFT);
+
+		headLineTable.getColumnModel().getColumn(0).setPreferredWidth(10);
+		headLineTable.getColumnModel().getColumn(1).setPreferredWidth(220);
+		headLineTable.getColumnModel().getColumn(3).setPreferredWidth(50);
+		headLineTable.getColumnModel().getColumn(1).setCellRenderer(centerRenderer);
 
 		DefaultTableCellRenderer leftRenderer = new DefaultTableCellRenderer();
 		leftRenderer.setHorizontalAlignment(SwingConstants.LEFT);
-		headLineTable.getColumnModel().getColumn(1).setCellRenderer(leftRenderer);
 		headlineScrollPane.setViewportView(headLineTable);
 		headLineTableModel = (DefaultTableModel) headLineTable.getModel();
 
@@ -617,20 +617,18 @@ public class AnalyzeNews extends JFrame {
 						}
 
 						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataDate.get(i).getVolume()) {
-							ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
+							ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
 
 							for (String ss : headline) {
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-										MainFrame.volumeDataDate.get(i).getDateAsString(), "Down", howManyDaysAfter,
-										"Read" });
+										MainFrame.volumeDataDate.get(i).getDateAsString(), "Down", "Read" });
 							}
 						} else {
 							for (String ss : headline) {
-								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 5);
+								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
 
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-										MainFrame.volumeDataDate.get(i).getDateAsString(), "Up", howManyDaysAfter,
-										"Read" });
+										MainFrame.volumeDataDate.get(i).getDateAsString(), "Up", "Read" });
 							}
 						}
 					}
