@@ -132,14 +132,31 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		logger.info("Application starting");
 
-		UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
-
+		System.setProperty("Quaqua.tabLayoutPolicy", "wrap");
+		// set the Quaqua Look and Feel in the UIManager
 		try {
+			UIManager.setLookAndFeel(ch.randelshofer.quaqua.QuaquaManager.getLookAndFeel());
+			// set UI manager properties here that affect Quaqua
+
+		} catch (Exception e) {
+			// take an appropriate action here
+
+		}
+		// insert your application initialization code here
+
+		try
+
+		{
 			MainFrame main = new MainFrame();
 			main.setTitle("Investor PAL");
-		} catch (Exception e) {
+		} catch (
+
+		Exception e)
+
+		{
 			new CheckInternet();
 		}
+
 	};
 
 	/**
