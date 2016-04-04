@@ -203,6 +203,8 @@ public class AnalyzeNews extends JFrame {
 			}
 		};
 
+		headLineTable.putClientProperty("Quaqua.Table.style", "striped");
+
 		headLineTable.setModel(new DefaultTableModel(new Object[][] {},
 				new String[] { "#", "Headline", "Date", "Movement", "Content" }) {
 			Class[] columnTypes = new Class[] { String.class, Integer.class, String.class, String.class, String.class,
@@ -272,6 +274,8 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(informationScrollPane, gbc_extendedWordScrollPane);
 
 		informationTable = new JTable();
+		informationTable.putClientProperty("Quaqua.Table.style", "striped");
+
 		informationTable.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mousePressed(MouseEvent arg0) {
