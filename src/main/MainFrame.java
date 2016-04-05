@@ -132,7 +132,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		logger.info("Application starting");
 
-		UIManager.setLookAndFeel("com.jtattoo.plaf.aluminium.AluminiumLookAndFeel");
+		com.jtattoo.plaf.acryl.AcrylLookAndFeel.setTheme("Large-Font", "", "");
+		UIManager.setLookAndFeel("com.jtattoo.plaf.acryl.AcrylLookAndFeel");
 
 		try {
 			MainFrame main = new MainFrame();
