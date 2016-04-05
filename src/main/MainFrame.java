@@ -681,15 +681,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		return headlinesAndDates;
 	}
 
-	public static String[] splitDates(String s) {
-		int index = 0;
-
-		for (int i = 0; i < 3; i++)
-			index = s.indexOf(",", index + 1);
-
-		return new String[] { s.substring(0, index), s.substring(index + 1) };
-	}
-
 	public static String changeDateFormat(String dateString) throws ParseException {
 		SimpleDateFormat oldFormat = new SimpleDateFormat("yyyy-MM-dd");
 		Date date = oldFormat.parse(dateString);
