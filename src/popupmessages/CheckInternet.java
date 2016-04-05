@@ -18,7 +18,7 @@ public class CheckInternet extends JDialog {
 
 	public CheckInternet() {
 
-		setBounds(100, 100, 427, 145);
+		setBounds(100, 100, 453, 154);
 		int x = (Toolkit.getDefaultToolkit().getScreenSize().width / 2) - this.getWidth() / 2;
 		int y = (Toolkit.getDefaultToolkit().getScreenSize().height / 2) - this.getHeight() / 2;
 		setLocation(x, y);
