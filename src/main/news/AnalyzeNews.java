@@ -143,7 +143,7 @@ public class AnalyzeNews extends JFrame {
 	private JTable headLineTable;
 	private JTable informationTable;
 	private String symbol = MainFrame.searchBox.getText();
-	private String loadingLabelDirectory = MainFrame.GLOBALPATH + "images/loading-image.gif";
+	private String loadingLabelDirectory = "images/loading-image.gif";
 	private String prDate = null;
 	private String prMovement = null;
 	private Color highlightRed = new Color(242, 44, 67);
@@ -396,9 +396,9 @@ public class AnalyzeNews extends JFrame {
 		getContentPane().add(searchKeyPanel, gbc_searchKeyPanel);
 
 		// images are 12x11 for consistency
-		BufferedImage redImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightRed.png"));
-		BufferedImage greenImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGreen.png"));
-		BufferedImage grayImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/highlightGray.png"));
+		BufferedImage redImage = ImageIO.read(new File("images/highlightRed.png"));
+		BufferedImage greenImage = ImageIO.read(new File("images/highlightGreen.png"));
+		BufferedImage grayImage = ImageIO.read(new File("images/highlightGray.png"));
 
 		GridBagLayout gbl_searchKeyPanel = new GridBagLayout();
 		gbl_searchKeyPanel.columnWidths = new int[] { 67, 86, 59, 0 };
@@ -501,7 +501,7 @@ public class AnalyzeNews extends JFrame {
 
 		setVisible(true);
 
-		for (String line : Files.readAllLines(Paths.get(MainFrame.GLOBALPATH + "stop-words.txt"))) {
+		for (String line : Files.readAllLines(Paths.get("stop-words.txt"))) {
 			for (String part : line.split("\n")) {
 				stopWordList.add(part);
 			}
@@ -664,7 +664,7 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			try {
-				new SignificantPhrases(new File(MainFrame.GLOBALPATH + "cache\\" + symbol));
+				new SignificantPhrases(new File("cache\\" + symbol));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -951,7 +951,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void pullDataFromDirectory() throws IOException {
-		File folder = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+		File folder = new File("cache\\" + symbol);
 		File[] listOfFiles = folder.listFiles();
 		if (!cacheNeeded(symbol)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
@@ -965,7 +965,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private boolean fileNameExistsInDirectory(String symbol) {
-		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
+		String directory = "cache\\" + symbol;
 		File theDirectory = new File(directory);
 
 		for (int row = 0; row < headLineTableModel.getRowCount(); row++) {
@@ -973,7 +973,7 @@ public class AnalyzeNews extends JFrame {
 					theDirectory + File.separator + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
 
 			if (!theFile.exists()) {
-				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+				File fileDirectory = new File("cache\\" + symbol);
 
 				for (File file : fileDirectory.listFiles())
 					file.delete();
@@ -1030,7 +1030,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private boolean cacheNeeded(String symbol) {
-		String directory = MainFrame.GLOBALPATH + "cache\\" + symbol;
+		String directory = "cache\\" + symbol;
 		File theDirectory = new File(directory);
 
 		if (theDirectory.exists()) {
@@ -1038,7 +1038,7 @@ public class AnalyzeNews extends JFrame {
 			int headlineSize = headlinesForFiles.size();
 
 			if (fileCount != headlineSize) {
-				File fileDirectory = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+				File fileDirectory = new File("cache\\" + symbol);
 				for (File file : fileDirectory.listFiles())
 					file.delete();
 
@@ -1055,7 +1055,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void createCacheFolder(String symbol) {
-		File dir = new File(MainFrame.GLOBALPATH + "cache\\" + symbol);
+		File dir = new File("cache\\" + symbol);
 
 		if (!dir.exists()) {
 			dir.mkdir();
@@ -1063,8 +1063,8 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void writeToCacheFile(String write, String symbol, String title) throws IOException {
-		String filePath = (MainFrame.GLOBALPATH + File.separator + "cache" + File.separator + symbol + File.separator
-				+ cleanText(title.replaceAll("\"", "")) + ".txt");
+		String filePath = ("cache" + File.separator + symbol + File.separator + cleanText(title.replaceAll("\"", ""))
+				+ ".txt");
 
 		File f = new File(filePath);
 		if (!f.exists()) {

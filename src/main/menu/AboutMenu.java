@@ -40,7 +40,7 @@ public class AboutMenu extends JFrame {
 		gbl_contentPane.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
 		contentPane.setLayout(gbl_contentPane);
 
-		BufferedImage logoImage = ImageIO.read(new File(MainFrame.GLOBALPATH + "images/logo.png"));
+		BufferedImage logoImage = ImageIO.read(new File("images/logo.png"));
 		logo = new JLabel("");
 		logo.setIcon(
 				new ImageIcon(new ImageIcon(logoImage).getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT)));

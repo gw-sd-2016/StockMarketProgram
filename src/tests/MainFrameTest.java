@@ -40,7 +40,7 @@ public class MainFrameTest {
 		ArrayList<String> titles = new ArrayList<String>();
 
 		Document doc = Jsoup
-				.parse(FileUtils.readFileToString(new File(MainFrame.GLOBALPATH + "testdocuments//HTMLDoc.txt")));
+				.parse(FileUtils.readFileToString(new File("testdocuments//HTMLDoc.txt")));
 
 		titles.add(
 				"Old Dominion Freight Line Announces LTL Tons Per Day and Revenue Per Hundredweight for January and February 2016");
