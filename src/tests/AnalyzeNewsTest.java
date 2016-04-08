@@ -1,9 +1,14 @@
 package tests;
 
 import static org.junit.Assert.assertEquals;
+import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import org.apache.commons.io.FileUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.junit.Test;
 import main.news.AnalyzeNews;
 
@@ -47,7 +52,35 @@ public class AnalyzeNewsTest {
 	}
 
 	@Test
-	public void extractMessageLinksTest() throws IOException {
+	public void removeStopWordsTest() throws IOException {
+		String test = "this is a stop word test and it should remove it.";
 
+		String result = AnalyzeNews.removeStopWords(test);
+
+		assertEquals(result, "stop word test remove ");
+	}
+
+	@Test
+	public void extractMessageLinksTest() throws IOException {
+		ArrayList<String> expectedResult = new ArrayList<String>();
+
+		Document doc = Jsoup.parse(FileUtils.readFileToString(new File("testdocuments//HTMLDoc.txt")));
+
+		expectedResult.add("http://finance.yahoo.com/news/old-dominion-freight-line-announces-164500860.html");
+
+		assertEquals(expectedResult, AnalyzeNews.extractMessageLinks(doc));
+	}
+
+	@Test
+	public void predictionScoreTest() throws IOException {
+		DecimalFormat df = new DecimalFormat("####0.00");
+
+		double sentimentScore = 1.0;
+		int timesSeen = 10;
+		int wordCountWithoutStopWords = 200;
+
+		double result = AnalyzeNews.predictionScore(sentimentScore, timesSeen, wordCountWithoutStopWords);
+
+		assertEquals(Double.parseDouble(df.format(result)), 33.33, 1e-15);
 	}
 }

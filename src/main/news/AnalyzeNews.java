@@ -123,7 +123,6 @@ import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
 public class AnalyzeNews extends JFrame {
-	private Set<String> stopWordList = new HashSet<String>();
 	private static DefaultTableModel headLineTableModel; // model for volume
 	private static DefaultTableModel informationTableModel; // model for info
 															// summary
@@ -501,12 +500,6 @@ public class AnalyzeNews extends JFrame {
 
 		setVisible(true);
 
-		for (String line : Files.readAllLines(Paths.get("stop-words.txt"))) {
-			for (String part : line.split("\n")) {
-				stopWordList.add(part);
-			}
-		}
-
 		for (String date : MainFrame.headlinesAndDates.keySet()) {
 			ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
 
@@ -537,35 +530,6 @@ public class AnalyzeNews extends JFrame {
 	};
 
 	Runnable retrieveNews = new Runnable() {
-		// fast way to remove stop words from long text.
-		public String removeStopWordsAndAppend(String remove) {
-			StringBuffer clean = new StringBuffer();
-			int index = 0;
-
-			while (index < remove.length()) {
-				int nextIndex = remove.indexOf(" ", index);
-
-				if (nextIndex == -1) {
-					nextIndex = remove.length() - 1;
-				}
-
-				String word = remove.substring(index, nextIndex);
-
-				if (!stopWordList.contains(word.toLowerCase())) {
-					clean.append(word);
-					if (nextIndex < remove.length()) {
-						// this adds the word delimiter, e.g. the following
-						// space
-						clean.append(remove.substring(nextIndex, nextIndex + 1));
-					}
-				}
-
-				index = nextIndex + 1;
-			}
-
-			return clean.toString();
-		}
-
 		public void run() {
 
 			Document doc = null;
@@ -763,9 +727,13 @@ public class AnalyzeNews extends JFrame {
 				String prMvmt = informationTable.getModel().getValueAt(row, 4).toString();
 				String sentenceList = "";
 				int timesSeen = (int) informationTable.getModel().getValueAt(row, 3);
-				int prContentWordCount = wordCount(prContent);
+				int prContentWordCount = 0;
 
-				System.out.println(prContentWordCount);
+				try {
+					prContentWordCount = wordCount(removeStopWords(prContent));
+				} catch (IOException e1) {
+					new CheckInternet();
+				}
 
 				prMovement = informationTable.getModel().getValueAt(row, 4).toString();
 
@@ -873,8 +841,9 @@ public class AnalyzeNews extends JFrame {
 
 				DecimalFormat df = new DecimalFormat("####0.00");
 
-				lblAverageScore
-						.setText("Average Score: " + df.format((averageScore(scores) / 3.0) * 100) + "% - " + prMvmt);
+				lblAverageScore.setText("Average Score: "
+						+ df.format(predictionScore(averageScore(scores), timesSeen, prContentWordCount)) + "% - "
+						+ prMvmt);
 				lblWord.setText("Word: " + wordToSearch);
 				lblSeen.setText("Seen: " + String.valueOf(timesSeen) + " / " + prContentWordCount);
 
@@ -888,6 +857,12 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
+	public static double predictionScore(double sentimentScore, int timesSeen, int wordCountWithoutStopWords) {
+		// divide by 3 for negative, neutral, positive. seenscore includes
+		// weighting with no stop words
+		return ((sentimentScore / 3.0) + (timesSeen / wordCountWithoutStopWords)) * 100;
+	}
+
 	public static double averageScore(ArrayList<Double> scores) {
 		double sum = 0.0;
 
@@ -896,6 +871,40 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		return sum / scores.size();
+	}
+
+	public static String removeStopWords(String remove) throws IOException {
+		Set<String> stopWordList = new HashSet<String>();
+
+		for (String line : Files.readAllLines(Paths.get("stop-words.txt"))) {
+			for (String part : line.split("\n")) {
+				stopWordList.add(part);
+			}
+		}
+
+		StringBuffer clean = new StringBuffer();
+		int index = 0;
+
+		while (index < remove.length()) {
+			int nextIndex = remove.indexOf(" ", index);
+
+			if (nextIndex == -1) {
+				nextIndex = remove.length() - 1;
+			}
+
+			String word = remove.substring(index, nextIndex);
+
+			if (!stopWordList.contains(word.toLowerCase())) {
+				clean.append(word);
+				if (nextIndex < remove.length()) {
+					clean.append(remove.substring(nextIndex, nextIndex + 1));
+				}
+			}
+
+			index = nextIndex + 1;
+		}
+
+		return clean.toString();
 	}
 
 	public static int wordCount(String content) {
@@ -1129,7 +1138,7 @@ public class AnalyzeNews extends JFrame {
 		}
 	};
 
-	private ArrayList<String> extractMessageLinks(Document doc) {
+	public static ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
 		Elements links = doc.select("a[href]");
 		for (Element link : links) {
