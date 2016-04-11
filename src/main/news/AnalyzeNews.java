@@ -628,7 +628,7 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			try {
-				new SignificantPhrases(new File("cache\\" + symbol));
+				new SignificantPhrases(new File("cache/" + symbol));
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
@@ -960,7 +960,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void pullDataFromDirectory() throws IOException {
-		File folder = new File("cache\\" + symbol);
+		File folder = new File("cache/" + symbol);
 		File[] listOfFiles = folder.listFiles();
 		if (!cacheNeeded(symbol)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
@@ -974,15 +974,14 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private boolean fileNameExistsInDirectory(String symbol) {
-		String directory = "cache\\" + symbol;
+		String directory = "cache/" + symbol;
 		File theDirectory = new File(directory);
 
 		for (int row = 0; row < headLineTableModel.getRowCount(); row++) {
-			File theFile = new File(
-					theDirectory + File.separator + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
+			File theFile = new File(theDirectory + "/" + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
 
 			if (!theFile.exists()) {
-				File fileDirectory = new File("cache\\" + symbol);
+				File fileDirectory = new File("cache/" + symbol);
 
 				for (File file : fileDirectory.listFiles())
 					file.delete();
@@ -1039,7 +1038,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private boolean cacheNeeded(String symbol) {
-		String directory = "cache\\" + symbol;
+		String directory = "cache/" + symbol;
 		File theDirectory = new File(directory);
 
 		if (theDirectory.exists()) {
@@ -1047,7 +1046,7 @@ public class AnalyzeNews extends JFrame {
 			int headlineSize = headlinesForFiles.size();
 
 			if (fileCount != headlineSize) {
-				File fileDirectory = new File("cache\\" + symbol);
+				File fileDirectory = new File("cache/" + symbol);
 				for (File file : fileDirectory.listFiles())
 					file.delete();
 
@@ -1064,7 +1063,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void createCacheFolder(String symbol) {
-		File dir = new File("cache\\" + symbol);
+		File dir = new File("cache/" + symbol);
 
 		if (!dir.exists()) {
 			dir.mkdir();
@@ -1072,8 +1071,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void writeToCacheFile(String write, String symbol, String title) throws IOException {
-		String filePath = ("cache" + File.separator + symbol + File.separator + cleanText(title.replaceAll("\"", ""))
-				+ ".txt");
+		String filePath = ("cache/" + symbol + "/" + cleanText(title.replaceAll("\"", "")) + ".txt");
 
 		File f = new File(filePath);
 		if (!f.exists()) {
@@ -1084,10 +1082,8 @@ public class AnalyzeNews extends JFrame {
 			writer.write(write);
 			writer.close();
 		} else {
-
 			try {
-				Files.write(Paths.get(filePath), (write + System.lineSeparator() + System.lineSeparator()).getBytes(),
-						StandardOpenOption.APPEND);
+				Files.write(Paths.get(filePath), (write + "//").getBytes(), StandardOpenOption.APPEND);
 			} catch (IOException e) {
 			}
 		}
