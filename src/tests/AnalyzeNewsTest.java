@@ -11,6 +11,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.junit.Test;
 import main.news.AnalyzeNews;
+import objects.PressRelease;
 
 public class AnalyzeNewsTest {
 
@@ -82,5 +83,29 @@ public class AnalyzeNewsTest {
 		double result = AnalyzeNews.predictionScore(sentimentScore, timesSeen, wordCountWithoutStopWords);
 
 		assertEquals(Double.parseDouble(df.format(result)), 33.33, 1e-15);
+	}
+
+	@Test
+	public void returnValidFileNameTest() throws IOException {
+		String title = "Shareholder Rights Law Firm Johnson Weaver LLP Initiates Investigations of Chipotle Mexican Grill Inc. Navient Corporation Brixmor Property Group Inc. and The Boeing Company Encourages Investors to Contact the Firm with any questions.";
+		String result = "Shareholder Rights Law Firm Johnson Weaver LLP Initiates Investigations of Chipotle Mexican Grill Inc. Navient Corporation Brixmor Property Group Inc. and The Boeing Company Encourages Investors to Contact the";
+
+		assertEquals(AnalyzeNews.returnValidFileName(title), result);
+	}
+
+	@Test
+	public void returnPressReleaseGivenTitleTest() throws IOException {
+		PressRelease one = new PressRelease("IP just released", "This is the content here.");
+		PressRelease two = new PressRelease("IP just released again", "This is the content here.");
+		PressRelease three = new PressRelease("IP just released again again", "This is the content here.");
+		PressRelease four = new PressRelease("IP just released again again again", "This is the content here.");
+
+		ArrayList<PressRelease> list = new ArrayList<PressRelease>();
+		list.add(one);
+		list.add(two);
+		list.add(three);
+		list.add(four);
+
+		assertEquals(one, AnalyzeNews.returnPressReleaseGivenTitle("IP just released", list));
 	}
 }
