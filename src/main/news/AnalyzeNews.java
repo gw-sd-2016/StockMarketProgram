@@ -119,17 +119,17 @@ import helpers.ButtonColumn;
 import helpers.PieRenderer;
 import main.MainFrame;
 import objects.IntegerPair;
+import objects.PressRelease;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
 public class AnalyzeNews extends JFrame {
-	private static DefaultTableModel headLineTableModel; // model for volume
-	private static DefaultTableModel informationTableModel; // model for info
-															// summary
+	private static DefaultTableModel headLineTableModel;
+	private static DefaultTableModel informationTableModel;
 	public static String tweetString;
-	private Map<String, String> newsHeadlineAndContent = new HashMap<String, String>();
 	private Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
+	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
 	private ChartPanel pieChartPanel;
 	private ChartPanel barChartPanel;
 	private ChartPanel twitterChartPanel;
@@ -524,8 +524,7 @@ public class AnalyzeNews extends JFrame {
 			int modelRow = Integer.valueOf(e.getActionCommand());
 			String valueToLookup = headLineTable.getModel().getValueAt(modelRow, 1).toString();
 
-			ReadNewsContent dialog = new ReadNewsContent(newsHeadlineAndContent.get(valueToLookup + ".txt").trim());
-
+			ReadNewsContent dialog = new ReadNewsContent(returnPressReleaseGivenTitle(valueToLookup).getContent());
 		}
 	};
 
@@ -723,7 +722,7 @@ public class AnalyzeNews extends JFrame {
 				ArrayList<Double> scores = new ArrayList<Double>();
 				String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
 				String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
-				String prContent = newsHeadlineAndContent.get(prTitle).trim().replaceAll(" +", " ");
+				String prContent = returnPressReleaseGivenTitle(prTitle).getContent();
 				String prMvmt = informationTable.getModel().getValueAt(row, 4).toString();
 				String sentenceList = "";
 				int timesSeen = (int) informationTable.getModel().getValueAt(row, 3);
@@ -857,6 +856,20 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
+	public static PressRelease returnPressReleaseGivenTitle(String title) {
+		for (PressRelease p : pressReleases) {
+			if (p.getTitle().equals(title + ".txt")) {
+
+				return p;
+			} else if (p.getTitle().equals(title)) {
+
+				return p;
+			}
+		}
+
+		return null;
+	}
+
 	public static double predictionScore(double sentimentScore, int timesSeen, int wordCountWithoutStopWords) {
 		// divide by 3 for negative, neutral, positive. seenscore includes
 		// weighting with no stop words
@@ -962,12 +975,13 @@ public class AnalyzeNews extends JFrame {
 	private void pullDataFromDirectory() throws IOException {
 		File folder = new File("cache/" + symbol);
 		File[] listOfFiles = folder.listFiles();
+
 		if (!cacheNeeded(symbol)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				File file = listOfFiles[i];
 				if (file.isFile() && file.getName().endsWith(".txt")) {
 					String content = FileUtils.readFileToString(file);
-					newsHeadlineAndContent.put(file.getName(), content);
+					pressReleases.add(new PressRelease(file.getName(), content));
 				}
 			}
 		}
@@ -1338,10 +1352,10 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	// return if a word was seen based on frequency map
-	private int wordExists(Map<String, String> content, String headline, String word) {
+	private int wordExists(String headline, String word) {
 		int numberOfTimesSeen = 0;
 		Map<String, Integer> result = new HashMap<String, Integer>();
-		result = wordFrequency(newsHeadlineAndContent.get(headline).toLowerCase());
+		result = wordFrequency(returnPressReleaseGivenTitle(headline).getContent());
 
 		try {
 			numberOfTimesSeen = result.get(word);
@@ -1359,13 +1373,15 @@ public class AnalyzeNews extends JFrame {
 		String[] search = informationTextField.getText().split(" ");
 		informationTableModel.setRowCount(0);
 
-		for (String headline : newsHeadlineAndContent.keySet()) {
+		for (PressRelease pressRelease : pressReleases) {
+			String title = pressRelease.getTitle();
+
 			for (String word : search) {
-				int numberOfTimesSeen = wordExists(newsHeadlineAndContent, headline, word);
+				int numberOfTimesSeen = wordExists(title, word);
 
 				if (numberOfTimesSeen > 0) {
-					informationTableModel.addRow(new Object[] { "Press Release", word, headline, numberOfTimesSeen,
-							headLineTable.getModel().getValueAt(returnRowNumber(headline), 3) });
+					informationTableModel.addRow(new Object[] { "Press Release", word, title, numberOfTimesSeen,
+							headLineTable.getModel().getValueAt(returnRowNumber(title), 3) });
 				}
 			}
 		}
