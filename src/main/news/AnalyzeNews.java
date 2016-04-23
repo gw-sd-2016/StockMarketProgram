@@ -522,9 +522,10 @@ public class AnalyzeNews extends JFrame {
 	Action pressButtonAction = new AbstractAction() {
 		public void actionPerformed(ActionEvent e) {
 			int modelRow = Integer.valueOf(e.getActionCommand());
-			String valueToLookup = headLineTable.getModel().getValueAt(modelRow, 1).toString();
+			String valueToLookup = returnValidFileName(
+					headLineTable.getModel().getValueAt(modelRow, 1).toString() + ".txt");
 
-			ReadNewsContent dialog = new ReadNewsContent(returnPressReleaseGivenTitle(valueToLookup).getContent());
+			new ReadNewsContent(returnPressReleaseGivenTitle(valueToLookup, pressReleases).getContent());
 		}
 	};
 
@@ -598,16 +599,16 @@ public class AnalyzeNews extends JFrame {
 				}
 			}
 
-			boolean fileExists = fileNameExistsInDirectory(symbol);
-
 			int numberOfFiles = 0;
 
 			for (String s : extractMessageLinks(doc)) {
-				if (cacheISNeeded || !fileExists) {
+				if (cacheISNeeded) {
 					try {
 						Document jSoupDoc = Jsoup.connect(s).get();
 						Elements ps = jSoupDoc.select("p");
-						writeToCacheFile(ps.text(), symbol, headlinesForFiles.get(numberOfFiles++));
+
+						writeToCacheFile(ps.text(), symbol,
+								returnValidFileName(cleanText(headlinesForFiles.get(numberOfFiles++))));
 					} catch (IOException e) {
 						new CheckInternet();
 					}
@@ -722,7 +723,7 @@ public class AnalyzeNews extends JFrame {
 				ArrayList<Double> scores = new ArrayList<Double>();
 				String wordToSearch = informationTable.getModel().getValueAt(row, 1).toString();
 				String prTitle = informationTable.getModel().getValueAt(row, 2).toString();
-				String prContent = returnPressReleaseGivenTitle(prTitle).getContent();
+				String prContent = returnPressReleaseGivenTitle(prTitle, pressReleases).getContent();
 				String prMvmt = informationTable.getModel().getValueAt(row, 4).toString();
 				String sentenceList = "";
 				int timesSeen = (int) informationTable.getModel().getValueAt(row, 3);
@@ -856,8 +857,8 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
-	public static PressRelease returnPressReleaseGivenTitle(String title) {
-		for (PressRelease p : pressReleases) {
+	public static PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
+		for (PressRelease p : list) {
 			if (p.getTitle().equals(title + ".txt")) {
 
 				return p;
@@ -981,6 +982,7 @@ public class AnalyzeNews extends JFrame {
 				File file = listOfFiles[i];
 				if (file.isFile() && file.getName().endsWith(".txt")) {
 					String content = FileUtils.readFileToString(file);
+
 					pressReleases.add(new PressRelease(file.getName(), content));
 				}
 			}
@@ -992,7 +994,8 @@ public class AnalyzeNews extends JFrame {
 		File theDirectory = new File(directory);
 
 		for (int row = 0; row < headLineTableModel.getRowCount(); row++) {
-			File theFile = new File(theDirectory + "/" + headLineTableModel.getValueAt(row, 1).toString() + ".txt");
+			String title = headLineTableModel.getValueAt(row, 1).toString();
+			File theFile = new File(theDirectory + "/" + returnValidFileName(title) + ".txt");
 
 			if (!theFile.exists()) {
 				File fileDirectory = new File("cache/" + symbol);
@@ -1005,6 +1008,16 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		return true;
+	}
+
+	public static String returnValidFileName(String text) {
+		if (text.toCharArray().length >= 210) {
+
+			return text.substring(0, 210).trim();
+		} else {
+
+			return text.trim();
+		}
 	}
 
 	private Map<String, IntegerPair> returnSentencesFromPressRelease(String content, String word) {
@@ -1085,7 +1098,7 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void writeToCacheFile(String write, String symbol, String title) throws IOException {
-		String filePath = ("cache/" + symbol + "/" + cleanText(title.replaceAll("\"", "")) + ".txt");
+		String filePath = ("cache/" + symbol + "/" + returnValidFileName(cleanText(title)) + ".txt");
 
 		File f = new File(filePath);
 		if (!f.exists()) {
@@ -1355,7 +1368,7 @@ public class AnalyzeNews extends JFrame {
 	private int wordExists(String headline, String word) {
 		int numberOfTimesSeen = 0;
 		Map<String, Integer> result = new HashMap<String, Integer>();
-		result = wordFrequency(returnPressReleaseGivenTitle(headline).getContent());
+		result = wordFrequency(returnPressReleaseGivenTitle(headline, pressReleases).getContent());
 
 		try {
 			numberOfTimesSeen = result.get(word);
@@ -1363,6 +1376,7 @@ public class AnalyzeNews extends JFrame {
 		}
 
 		if (numberOfTimesSeen > 0) {
+
 			return result.get(word);
 		}
 
