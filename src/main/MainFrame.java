@@ -107,6 +107,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
 	public static JLabel lblCompanyName;
 	public static JLabel labelCompany;
+	private JButton btnNews;
 	private JLabel lblDate;
 	private JLabel lblPressReleasesToBeAn;
 	private JLabel lblAvgDailyVolume;
@@ -206,13 +207,14 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		gbl_contentPane.rowWeights = new double[] { 0.0, 0.0, 1.0, 1.0, 1.0, Double.MIN_VALUE };
 		contentPane.setLayout(gbl_contentPane);
 
-		JButton btnNews = new JButton("News");
+		btnNews = new JButton("News");
 		GridBagConstraints gbc_btnNews = new GridBagConstraints();
 		gbc_btnNews.anchor = GridBagConstraints.WEST;
 		gbc_btnNews.insets = new Insets(0, 0, 5, 5);
 		gbc_btnNews.gridx = 0;
 		gbc_btnNews.gridy = 0;
 		contentPane.add(btnNews, gbc_btnNews);
+		btnNews.setEnabled(false);
 		btnNews.addActionListener(this);
 
 		lblDate = new JLabel("");
@@ -720,6 +722,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 				getGeneralData();
 
+				btnNews.setEnabled(true);
+
 			} catch (IOException e1) {
 
 				new CheckInternet();
@@ -751,6 +755,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 				new VolumeHistory();
 
 				getGeneralData();
+
+				btnNews.setEnabled(true);
 
 			} catch (IOException e1) {
 
