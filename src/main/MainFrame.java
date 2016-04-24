@@ -723,7 +723,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 				getGeneralData();
 
 				btnNews.setEnabled(true);
-
 			} catch (IOException e1) {
 
 				new CheckInternet();
@@ -733,8 +732,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			}
 		} else if (arg0.getActionCommand() == "News") {
 			try {
-
 				new AnalyzeNews();
+
+				btnNews.setEnabled(false);
 			} catch (IOException | ParseException e) {
 
 				new CheckInternet();
