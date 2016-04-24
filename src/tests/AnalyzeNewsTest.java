@@ -6,6 +6,10 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -95,10 +99,11 @@ public class AnalyzeNewsTest {
 
 	@Test
 	public void returnPressReleaseGivenTitleTest() throws IOException {
-		PressRelease one = new PressRelease("IP just released", "This is the content here.");
-		PressRelease two = new PressRelease("IP just released again", "This is the content here.");
-		PressRelease three = new PressRelease("IP just released again again", "This is the content here.");
-		PressRelease four = new PressRelease("IP just released again again again", "This is the content here.");
+		Date today = new Date();
+		PressRelease one = new PressRelease("IP just released", "This is the content here.", today);
+		PressRelease two = new PressRelease("IP just released again", "This is the content here.", today);
+		PressRelease three = new PressRelease("IP just released again again", "This is the content here.", today);
+		PressRelease four = new PressRelease("IP just released again again again", "This is the content here.", today);
 
 		ArrayList<PressRelease> list = new ArrayList<PressRelease>();
 		list.add(one);
@@ -107,5 +112,27 @@ public class AnalyzeNewsTest {
 		list.add(four);
 
 		assertEquals(one, AnalyzeNews.returnPressReleaseGivenTitle("IP just released", list));
+	}
+
+	@Test
+	public void returnDateGivenHeadlineTest() throws ParseException {
+		File f = new File("Title one.txt");
+		Map<String, ArrayList<String>> headlinesAndDates = new HashMap<String, ArrayList<String>>();
+		ArrayList<String> headlines = new ArrayList<String>();
+
+		headlines.add("Title one");
+		headlines.add("Title two");
+		headlines.add("Title three");
+		headlines.add("Title four");
+		headlines.add("Title five");
+
+		Calendar cal = Calendar.getInstance();
+		cal.set(2016, 11, 11, 0, 0, 0);
+
+		Date theDate = cal.getTime();
+
+		headlinesAndDates.put("2016-12-11", headlines);
+
+		assertEquals(AnalyzeNews.returnDateGivenHeadline(f, headlinesAndDates).toString(), theDate.toString());
 	}
 }

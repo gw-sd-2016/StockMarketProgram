@@ -735,7 +735,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			try {
 
 				new AnalyzeNews();
-			} catch (IOException e) {
+			} catch (IOException | ParseException e) {
 
 				new CheckInternet();
 			}
