@@ -1,18 +1,17 @@
 package objects;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Date;
 
 public class PressRelease {
 
 	protected String title;
-	protected int id;
 	protected String content;
-	static AtomicInteger nextId = new AtomicInteger();
+	protected Date date;
 
-	public PressRelease(String title, String content) {
+	public PressRelease(String title, String content, Date date) {
 		this.title = title;
-		this.id = nextId.incrementAndGet();
 		this.content = content;
+		this.date = date;
 	}
 
 	public String getTitle() {
@@ -25,9 +24,14 @@ public class PressRelease {
 		return content;
 	}
 
-	public int getID() {
+	public Date getDate() {
 
-		return id;
+		return date;
+	}
+
+	public void setDate(Date date) {
+
+		this.date = date;
 	}
 
 	public void setTitle(String title) {

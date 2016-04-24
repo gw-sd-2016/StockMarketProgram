@@ -161,7 +161,7 @@ public class AnalyzeNews extends JFrame {
 	private JTextPane extendedTextPane;
 	private ButtonColumn buttonColumn;
 
-	public AnalyzeNews() throws IOException {
+	public AnalyzeNews() throws IOException, ParseException {
 		setTitle("Investor PAL");
 		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
@@ -860,7 +860,13 @@ public class AnalyzeNews extends JFrame {
 
 	public static PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
 		if (list.size() == 0) {
-			pullDataFromDirectory();
+			try {
+				pullDataFromDirectory();
+			} catch (IOException e) {
+				e.printStackTrace();
+			} catch (ParseException e) {
+				e.printStackTrace();
+			}
 		}
 
 		for (PressRelease p : list) {
@@ -978,7 +984,7 @@ public class AnalyzeNews extends JFrame {
 		sectorLoadingLabel.setVisible(false);
 	}
 
-	private static void pullDataFromDirectory() {
+	private static void pullDataFromDirectory() throws IOException, ParseException {
 		File folder = new File("cache/" + symbol);
 		File[] listOfFiles = folder.listFiles();
 
@@ -994,7 +1000,8 @@ public class AnalyzeNews extends JFrame {
 						new CheckInternet();
 					}
 
-					pressReleases.add(new PressRelease(file.getName(), content));
+					pressReleases.add(new PressRelease(file.getName(), content,
+							returnDateGivenHeadline(file, MainFrame.headlinesAndDates)));
 				}
 			}
 		}
@@ -1029,6 +1036,26 @@ public class AnalyzeNews extends JFrame {
 
 			return text.trim();
 		}
+	}
+
+	public static Date returnDateGivenHeadline(File f, Map<String, ArrayList<String>> dateAndHeadLine)
+			throws ParseException {
+
+		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+		for (String date : dateAndHeadLine.keySet()) {
+			ArrayList<String> headline = dateAndHeadLine.get(date);
+
+			for (String ss : headline) {
+				if ((returnValidFileName(cleanText(ss)) + ".txt").equals(f.getName())) {
+					Date returnDate = formatter.parse(date);
+
+					return returnDate;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private Map<String, IntegerPair> returnSentencesFromPressRelease(String content, String word) {
