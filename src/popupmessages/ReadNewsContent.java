@@ -33,6 +33,7 @@ public class ReadNewsContent extends JDialog {
 			contentPanel.add(contentScrollPane);
 			{
 				contentArea = new JTextArea();
+				contentArea.setLineWrap(true);
 				contentScrollPane.setViewportView(contentArea);
 			}
 		}
