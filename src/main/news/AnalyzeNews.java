@@ -128,7 +128,7 @@ public class AnalyzeNews extends JFrame {
 	private static DefaultTableModel informationTableModel;
 	public static String tweetString;
 	private Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
-	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
+	private static ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
 	private ChartPanel pieChartPanel;
 	private ChartPanel barChartPanel;
@@ -141,7 +141,7 @@ public class AnalyzeNews extends JFrame {
 	private JScrollPane extendedWordScrollPane;
 	private JTable headLineTable;
 	private JTable informationTable;
-	private String symbol = MainFrame.searchBox.getText();
+	private static String symbol = MainFrame.searchBox.getText();
 	private String loadingLabelDirectory = "images/loading-image.gif";
 	private String prDate = null;
 	private String prMovement = null;
@@ -159,6 +159,7 @@ public class AnalyzeNews extends JFrame {
 	private JLabel lblWord;
 	private JTextComponent informationTextField;
 	private JTextPane extendedTextPane;
+	private ButtonColumn buttonColumn;
 
 	public AnalyzeNews() throws IOException {
 		setTitle("Investor PAL");
@@ -508,11 +509,7 @@ public class AnalyzeNews extends JFrame {
 			}
 		}
 
-		try {
-			pullDataFromDirectory();
-		} catch (IOException e1) {
-			new CheckInternet();
-		}
+		pullDataFromDirectory();
 
 		new Thread(retrieveNews).start();
 		new Thread(retrieveTwitter).start();
@@ -581,7 +578,8 @@ public class AnalyzeNews extends JFrame {
 						}
 
 						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataDate.get(i).getVolume()) {
-							ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
+							buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
+							buttonColumn.setEnabled(false);
 
 							for (String ss : headline) {
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
@@ -589,7 +587,8 @@ public class AnalyzeNews extends JFrame {
 							}
 						} else {
 							for (String ss : headline) {
-								ButtonColumn buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
+								buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
+								buttonColumn.setEnabled(false);
 
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
 										MainFrame.volumeDataDate.get(i).getDateAsString(), "Up", "Read" });
@@ -642,6 +641,8 @@ public class AnalyzeNews extends JFrame {
 			}
 
 			addBarChart();
+
+			buttonColumn.setEnabled(true);
 		}
 	};
 
@@ -858,6 +859,10 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	public static PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
+		if (list.size() == 0) {
+			pullDataFromDirectory();
+		}
+
 		for (PressRelease p : list) {
 			if (p.getTitle().equals(title + ".txt")) {
 
@@ -973,15 +978,21 @@ public class AnalyzeNews extends JFrame {
 		sectorLoadingLabel.setVisible(false);
 	}
 
-	private void pullDataFromDirectory() throws IOException {
+	private static void pullDataFromDirectory() {
 		File folder = new File("cache/" + symbol);
 		File[] listOfFiles = folder.listFiles();
 
 		if (!cacheNeeded(symbol)) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				File file = listOfFiles[i];
+
 				if (file.isFile() && file.getName().endsWith(".txt")) {
-					String content = FileUtils.readFileToString(file);
+					String content = null;
+					try {
+						content = FileUtils.readFileToString(file);
+					} catch (IOException e) {
+						new CheckInternet();
+					}
 
 					pressReleases.add(new PressRelease(file.getName(), content));
 				}
@@ -1064,7 +1075,7 @@ public class AnalyzeNews extends JFrame {
 		return result;
 	}
 
-	private boolean cacheNeeded(String symbol) {
+	private static boolean cacheNeeded(String symbol) {
 		String directory = "cache/" + symbol;
 		File theDirectory = new File(directory);
 
@@ -1089,7 +1100,7 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
-	private void createCacheFolder(String symbol) {
+	private static void createCacheFolder(String symbol) {
 		File dir = new File("cache/" + symbol);
 
 		if (!dir.exists()) {
