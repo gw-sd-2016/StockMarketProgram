@@ -20,7 +20,8 @@ import objects.PressRelease;
 public class AnalyzeNewsTest {
 
 	@Test
-	public void returnAverageListTest() throws ParseException, IOException {
+	public void returnAverageScoreTest() throws ParseException, IOException {
+
 		ArrayList<Double> scores = new ArrayList<Double>();
 		scores.add(4.0);
 		scores.add(5.0);
@@ -98,7 +99,7 @@ public class AnalyzeNewsTest {
 	}
 
 	@Test
-	public void returnPressReleaseGivenTitleTest() throws IOException {
+	public void returnPressReleaseGivenTitleTest() throws IOException, ParseException {
 		Date today = new Date();
 		PressRelease one = new PressRelease("IP just released", "This is the content here.", today);
 		PressRelease two = new PressRelease("IP just released again", "This is the content here.", today);

@@ -105,9 +105,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	public static Map<String, String> newsHeadLines = new HashMap<String, String>();
 	public static Map<String, ArrayList<String>> headlinesAndDates;
 	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
+	private JButton btnNews;
 	public static JLabel lblCompanyName;
 	public static JLabel labelCompany;
-	private JButton btnNews;
 	private JLabel lblDate;
 	private JLabel lblPressReleasesToBeAn;
 	private JLabel lblAvgDailyVolume;
@@ -115,6 +115,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	private JLabel lblExchange;
 	public static JFreeChart mainChart;
 	public static JFreeChart defaultMainChart;
+	public String symbol;
 
 	/**
 	 * Launch the application.
@@ -476,9 +477,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		public JFreeChart chart;
 		private Crosshair xCrosshair;
 		private Crosshair yCrosshair;
-		private String symbol = MainFrame.searchBox.getText();
 
 		public VolumeHistory() throws IOException, ParseException {
+			symbol = MainFrame.searchBox.getText();
 			getData();
 			dataset = createDataset();
 			chart = createChart(priceData);
@@ -732,7 +733,17 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			}
 		} else if (arg0.getActionCommand() == "News") {
 			try {
-				new AnalyzeNews();
+				ArrayList<String> headlinesForFiles = new ArrayList<String>();
+
+				for (String date : MainFrame.headlinesAndDates.keySet()) {
+					ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
+
+					for (String ss : headline) {
+						headlinesForFiles.add(ss);
+					}
+				}
+
+				new AnalyzeNews(symbol, headlinesForFiles);
 
 				btnNews.setEnabled(false);
 			} catch (IOException | ParseException e) {
