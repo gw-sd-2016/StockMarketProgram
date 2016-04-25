@@ -141,7 +141,7 @@ public class AnalyzeNews extends JFrame {
 	private JScrollPane extendedWordScrollPane;
 	private JTable headLineTable;
 	private JTable informationTable;
-	private static String symbol = MainFrame.searchBox.getText();
+	private static String symbol;
 	private String loadingLabelDirectory = "images/loading-image.gif";
 	private String prDate = null;
 	private String prMovement = null;
@@ -161,9 +161,10 @@ public class AnalyzeNews extends JFrame {
 	private JTextPane extendedTextPane;
 	private ButtonColumn buttonColumn;
 
-	public AnalyzeNews() throws IOException, ParseException {
+	public AnalyzeNews(String symbol, ArrayList<String> headlineList) throws IOException, ParseException {
 		setTitle("Investor PAL");
 		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
+		this.symbol = symbol;
 
 		setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		GridBagLayout gridBagLayout = new GridBagLayout();
@@ -501,13 +502,7 @@ public class AnalyzeNews extends JFrame {
 
 		setVisible(true);
 
-		for (String date : MainFrame.headlinesAndDates.keySet()) {
-			ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
-
-			for (String ss : headline) {
-				headlinesForFiles.add(ss);
-			}
-		}
+		this.headlinesForFiles = headlineList;
 
 		pullDataFromDirectory();
 
