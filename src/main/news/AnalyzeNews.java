@@ -123,16 +123,11 @@ import objects.PressRelease;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
-public class AnalyzeNews extends JFrame {
-	private static DefaultTableModel headLineTableModel;
-	private static DefaultTableModel informationTableModel;
-	public static String tweetString;
-	private Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
-	private static ArrayList<String> headlinesForFiles = new ArrayList<String>();
+public class AnalyzeNews {
+	private static JFrame frame;
+	private static Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
-	private ChartPanel pieChartPanel;
-	private ChartPanel barChartPanel;
-	private ChartPanel twitterChartPanel;
+	private static String loadingLabelDirectory = "images/loading-image.gif";
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
 	private GridBagConstraints gbc_twitterChartPanel;
@@ -141,13 +136,8 @@ public class AnalyzeNews extends JFrame {
 	private JScrollPane extendedWordScrollPane;
 	private JTable headLineTable;
 	private JTable informationTable;
-	private static String symbol;
-	private String loadingLabelDirectory = "images/loading-image.gif";
 	private String prDate = null;
 	private String prMovement = null;
-	private Color highlightRed = new Color(242, 44, 67);
-	private Color highlightGreen = new Color(44, 242, 153);
-	private Color highlightGray = new Color(198, 204, 201);
 	private JPanel searchKeyPanel;
 	private JPanel borderPanel;
 	private JLabel lblAverageScore;
@@ -159,20 +149,41 @@ public class AnalyzeNews extends JFrame {
 	private JLabel lblWord;
 	private JTextComponent informationTextField;
 	private JTextPane extendedTextPane;
+	private ChartPanel pieChartPanel;
+	private ChartPanel barChartPanel;
+	private ChartPanel twitterChartPanel;
+	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
+	private Color highlightRed = new Color(242, 44, 67);
+	private Color highlightGreen = new Color(44, 242, 153);
+	private Color highlightGray = new Color(198, 204, 201);
 	private ButtonColumn buttonColumn;
+	private String symbol;
+	private DefaultTableModel headLineTableModel;
+	private DefaultTableModel informationTableModel;
 
 	public AnalyzeNews(String symbol, ArrayList<String> headlineList) throws IOException, ParseException {
-		setTitle("Investor PAL");
-		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 		this.symbol = symbol;
+		this.headlinesForFiles = headlineList;
 
-		setExtendedState(MainFrame.MAXIMIZED_BOTH);
+		pullDataFromDirectory();
+
+		new Thread(retrieveNews).start();
+		new Thread(retrieveTwitter).start();
+	}
+
+	public void createAndShowGUI() throws IOException {
+		frame = new JFrame("Investor PAL");
+
+		frame.setTitle("Investor PAL");
+		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
+
+		frame.setExtendedState(MainFrame.MAXIMIZED_BOTH);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
-		getContentPane().setLayout(gridBagLayout);
+		frame.getContentPane().setLayout(gridBagLayout);
 
 		headlineScrollPane = new JScrollPane();
 		GridBagConstraints gbc_headlineScrollPane = new GridBagConstraints();
@@ -180,7 +191,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_headlineScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_headlineScrollPane.gridx = 1;
 		gbc_headlineScrollPane.gridy = 0;
-		getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
+		frame.getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
 
 		headLineTable = new JTable() {
 			public boolean isCellEditable(int row, int column) {
@@ -254,14 +265,14 @@ public class AnalyzeNews extends JFrame {
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
 		gbc_textField.gridx = 2;
 		gbc_textField.gridy = 1;
-		getContentPane().add(informationTextField, gbc_textField);
+		frame.getContentPane().add(informationTextField, gbc_textField);
 
 		sigTermsLoadingLabel = new JLabel("");
 		GridBagConstraints gbc_sigTermsLoadingLabel = new GridBagConstraints();
 		gbc_sigTermsLoadingLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_sigTermsLoadingLabel.gridx = 1;
 		gbc_sigTermsLoadingLabel.gridy = 2;
-		getContentPane().add(sigTermsLoadingLabel, gbc_sigTermsLoadingLabel);
+		frame.getContentPane().add(sigTermsLoadingLabel, gbc_sigTermsLoadingLabel);
 
 		informationScrollPane = new JScrollPane();
 		informationScrollPane.setEnabled(false);
@@ -270,7 +281,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_extendedWordScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_extendedWordScrollPane.gridx = 2;
 		gbc_extendedWordScrollPane.gridy = 2;
-		getContentPane().add(informationScrollPane, gbc_extendedWordScrollPane);
+		frame.getContentPane().add(informationScrollPane, gbc_extendedWordScrollPane);
 
 		informationTable = new JTable();
 		informationTable.addMouseListener(new MouseAdapter() {
@@ -320,14 +331,14 @@ public class AnalyzeNews extends JFrame {
 		gbc_twitterLoadingLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_twitterLoadingLabel.gridx = 1;
 		gbc_twitterLoadingLabel.gridy = 4;
-		getContentPane().add(twitterLoadingLabel, gbc_twitterLoadingLabel);
+		frame.getContentPane().add(twitterLoadingLabel, gbc_twitterLoadingLabel);
 
 		sectorLoadingLabel = new JLabel("");
 		GridBagConstraints gbc_sectorLoadingLabel = new GridBagConstraints();
 		gbc_sectorLoadingLabel.insets = new Insets(0, 0, 5, 0);
 		gbc_sectorLoadingLabel.gridx = 2;
 		gbc_sectorLoadingLabel.gridy = 0;
-		getContentPane().add(sectorLoadingLabel, gbc_sectorLoadingLabel);
+		frame.getContentPane().add(sectorLoadingLabel, gbc_sectorLoadingLabel);
 
 		extendedWordScrollPane = new JScrollPane();
 		GridBagConstraints gbc_extendedWordScrollPane1 = new GridBagConstraints();
@@ -335,7 +346,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_extendedWordScrollPane1.fill = GridBagConstraints.BOTH;
 		gbc_extendedWordScrollPane1.gridx = 2;
 		gbc_extendedWordScrollPane1.gridy = 4;
-		getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
+		frame.getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
 
 		class ImageToolTipUI extends MetalToolTipUI {
 			double annotationPosX = MainFrame.annotationPositions.get(prDate).returnPositionX();
@@ -394,7 +405,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_searchKeyPanel.fill = GridBagConstraints.VERTICAL;
 		gbc_searchKeyPanel.gridx = 2;
 		gbc_searchKeyPanel.gridy = 5;
-		getContentPane().add(searchKeyPanel, gbc_searchKeyPanel);
+		frame.getContentPane().add(searchKeyPanel, gbc_searchKeyPanel);
 
 		// images are 12x11 for consistency
 		BufferedImage redImage = ImageIO.read(new File("images/highlightRed.png"));
@@ -500,15 +511,7 @@ public class AnalyzeNews extends JFrame {
 		gbc_pieChartPanel.gridx = 2;
 		gbc_pieChartPanel.gridy = 0;
 
-		setVisible(true);
-
-		this.headlinesForFiles = headlineList;
-
-		pullDataFromDirectory();
-
-		new Thread(retrieveNews).start();
-		new Thread(retrieveTwitter).start();
-
+		frame.setVisible(true);
 	}
 
 	Action pressButtonAction = new AbstractAction() {
@@ -853,7 +856,7 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
-	public static PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
+	public PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
 		if (list.size() == 0) {
 			try {
 				pullDataFromDirectory();
@@ -883,7 +886,7 @@ public class AnalyzeNews extends JFrame {
 		return ((sentimentScore / 3.0) + (timesSeen / wordCountWithoutStopWords)) * 100;
 	}
 
-	public static double averageScore(ArrayList<Double> scores) {
+	public double averageScore(ArrayList<Double> scores) {
 		double sum = 0.0;
 
 		for (double score : scores) {
@@ -893,7 +896,7 @@ public class AnalyzeNews extends JFrame {
 		return sum / scores.size();
 	}
 
-	public static String removeStopWords(String remove) throws IOException {
+	public String removeStopWords(String remove) throws IOException {
 		Set<String> stopWordList = new HashSet<String>();
 
 		for (String line : Files.readAllLines(Paths.get("stop-words.txt"))) {
@@ -927,14 +930,14 @@ public class AnalyzeNews extends JFrame {
 		return clean.toString();
 	}
 
-	public static int wordCount(String content) {
+	public int wordCount(String content) {
 		String[] wordArray = content.split("\\s+");
 
 		return wordArray.length;
 	}
 
 	// cleans text since files can't have certain characters
-	public static String cleanText(String fix) {
+	public String cleanText(String fix) {
 		String result = fix;
 		result = result.replaceAll("[^a-zA-Z0-9.-]", " ").trim().replaceAll(" +", " ");
 
@@ -942,9 +945,9 @@ public class AnalyzeNews extends JFrame {
 	}
 
 	private void addBarChart() {
-		if (getContentPane().getComponentCount() != 0) {
+		if (frame.getContentPane().getComponentCount() != 0) {
 			if (barChartPanel != null) {
-				getContentPane().remove(barChartPanel);
+				frame.getContentPane().remove(barChartPanel);
 			}
 		}
 
@@ -955,15 +958,15 @@ public class AnalyzeNews extends JFrame {
 
 		barChartPanel = new ChartPanel(chart);
 
-		getContentPane().add(barChartPanel, gbc_barChartPanel);
-		getContentPane().revalidate();
-		getContentPane().repaint();
+		frame.getContentPane().add(barChartPanel, gbc_barChartPanel);
+		frame.getContentPane().revalidate();
+		frame.getContentPane().repaint();
 	}
 
 	private void addPieChart(String title) {
-		if (getContentPane().getComponentCount() != 0) {
+		if (frame.getContentPane().getComponentCount() != 0) {
 			if (pieChartPanel != null) {
-				getContentPane().remove(pieChartPanel);
+				frame.getContentPane().remove(pieChartPanel);
 			}
 		}
 
@@ -972,14 +975,14 @@ public class AnalyzeNews extends JFrame {
 
 		pieChartPanel = new ChartPanel(chart);
 
-		getContentPane().add(pieChartPanel, gbc_pieChartPanel);
-		getContentPane().revalidate();
-		getContentPane().repaint();
+		frame.getContentPane().add(pieChartPanel, gbc_pieChartPanel);
+		frame.getContentPane().revalidate();
+		frame.getContentPane().repaint();
 
 		sectorLoadingLabel.setVisible(false);
 	}
 
-	private static void pullDataFromDirectory() throws IOException, ParseException {
+	private void pullDataFromDirectory() throws IOException, ParseException {
 		File folder = new File("cache/" + symbol);
 		File[] listOfFiles = folder.listFiles();
 
@@ -1033,8 +1036,7 @@ public class AnalyzeNews extends JFrame {
 		}
 	}
 
-	public static Date returnDateGivenHeadline(File f, Map<String, ArrayList<String>> dateAndHeadLine)
-			throws ParseException {
+	public Date returnDateGivenHeadline(File f, Map<String, ArrayList<String>> dateAndHeadLine) throws ParseException {
 
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -1097,7 +1099,7 @@ public class AnalyzeNews extends JFrame {
 		return result;
 	}
 
-	private static boolean cacheNeeded(String symbol) {
+	private boolean cacheNeeded(String symbol) {
 		String directory = "cache/" + symbol;
 		File theDirectory = new File(directory);
 
@@ -1186,9 +1188,9 @@ public class AnalyzeNews extends JFrame {
 				e.printStackTrace();
 			}
 
-			getContentPane().add(twitterChartPanel, gbc_twitterChartPanel);
-			getContentPane().revalidate();
-			getContentPane().repaint();
+			frame.getContentPane().add(twitterChartPanel, gbc_twitterChartPanel);
+			frame.getContentPane().revalidate();
+			frame.getContentPane().repaint();
 
 			numberOfTimesSeenTwitter();
 		}
@@ -1227,7 +1229,7 @@ public class AnalyzeNews extends JFrame {
 			numberTweet++;
 		}
 
-		result.addSeries(getTitle(), seriesOne.toArray());
+		result.addSeries(frame.getTitle(), seriesOne.toArray());
 
 		return result;
 	}
@@ -1303,7 +1305,7 @@ public class AnalyzeNews extends JFrame {
 		return chart;
 	}
 
-	public static int calculateAnnotationOffset(int numberOfTweets) {
+	public int calculateAnnotationOffset(int numberOfTweets) {
 		int base = 20;
 		int offset = 2;
 
@@ -1464,7 +1466,7 @@ public class AnalyzeNews extends JFrame {
 		return 0;
 	}
 
-	public Map<String, Integer> wordFrequency(String xlo) {
+	public static Map<String, Integer> wordFrequency(String xlo) {
 		Map<String, Integer> myMap = new HashMap<String, Integer>();
 
 		String words = xlo;
