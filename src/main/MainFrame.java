@@ -743,7 +743,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 					}
 				}
 
-				new AnalyzeNews(symbol, headlinesForFiles);
+				AnalyzeNews newsObject = new AnalyzeNews(symbol, headlinesForFiles);
+				newsObject.createAndShowGUI();
 
 				btnNews.setEnabled(false);
 			} catch (IOException | ParseException e) {

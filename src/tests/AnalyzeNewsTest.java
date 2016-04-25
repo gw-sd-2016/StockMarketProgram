@@ -13,28 +13,39 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.junit.Before;
 import org.junit.Test;
 import main.news.AnalyzeNews;
 import objects.PressRelease;
 
 public class AnalyzeNewsTest {
+	private AnalyzeNews news;
+	private ArrayList<String> headlines = new ArrayList<String>();
+	private String symbol;
+
+	@Before
+	public void init() throws IOException, ParseException {
+		symbol = "TST";
+		headlines.add("First Headline");
+		headlines.add("Second Headline");
+		news = new AnalyzeNews(symbol, headlines);
+	}
 
 	@Test
 	public void returnAverageScoreTest() throws ParseException, IOException {
-
 		ArrayList<Double> scores = new ArrayList<Double>();
 		scores.add(4.0);
 		scores.add(5.0);
 		scores.add(3.0);
 
-		double result = AnalyzeNews.averageScore(scores);
+		double result = news.averageScore(scores);
 
 		assertEquals(result, 4.0, 1e-15);
 	}
 
 	@Test
 	public void returnCleanedTextTest() throws ParseException, IOException {
-		String result = AnalyzeNews.cleanText("@#$test&&");
+		String result = news.cleanText("@#$test&&");
 
 		assertEquals(result, "test");
 	}
@@ -43,7 +54,7 @@ public class AnalyzeNewsTest {
 	public void wordCountTest() throws IOException {
 		String test = "This is a test sentence in order to get the word count.";
 
-		int result = AnalyzeNews.wordCount(test);
+		int result = news.wordCount(test);
 
 		assertEquals(result, 12);
 	}
@@ -52,7 +63,7 @@ public class AnalyzeNewsTest {
 	public void calculateAnnotationOffsetTest() {
 		int numberOfTweets = 300;
 
-		int result = AnalyzeNews.calculateAnnotationOffset(numberOfTweets);
+		int result = news.calculateAnnotationOffset(numberOfTweets);
 
 		assertEquals(result, 270);
 	}
@@ -61,7 +72,7 @@ public class AnalyzeNewsTest {
 	public void removeStopWordsTest() throws IOException {
 		String test = "this is a stop word test and it should remove it.";
 
-		String result = AnalyzeNews.removeStopWords(test);
+		String result = news.removeStopWords(test);
 
 		assertEquals(result, "stop word test remove ");
 	}
@@ -112,28 +123,28 @@ public class AnalyzeNewsTest {
 		list.add(three);
 		list.add(four);
 
-		assertEquals(one, AnalyzeNews.returnPressReleaseGivenTitle("IP just released", list));
+		assertEquals(one, news.returnPressReleaseGivenTitle("IP just released", list));
 	}
 
 	@Test
 	public void returnDateGivenHeadlineTest() throws ParseException {
 		File f = new File("Title one.txt");
 		Map<String, ArrayList<String>> headlinesAndDates = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> headlines = new ArrayList<String>();
+		ArrayList<String> headlinesToTest = new ArrayList<String>();
 
-		headlines.add("Title one");
-		headlines.add("Title two");
-		headlines.add("Title three");
-		headlines.add("Title four");
-		headlines.add("Title five");
+		headlinesToTest.add("Title one");
+		headlinesToTest.add("Title two");
+		headlinesToTest.add("Title three");
+		headlinesToTest.add("Title four");
+		headlinesToTest.add("Title five");
 
 		Calendar cal = Calendar.getInstance();
 		cal.set(2016, 11, 11, 0, 0, 0);
 
 		Date theDate = cal.getTime();
 
-		headlinesAndDates.put("2016-12-11", headlines);
+		headlinesAndDates.put("2016-12-11", headlinesToTest);
 
-		assertEquals(AnalyzeNews.returnDateGivenHeadline(f, headlinesAndDates).toString(), theDate.toString());
+		assertEquals(news.returnDateGivenHeadline(f, headlinesAndDates).toString(), theDate.toString());
 	}
 }
