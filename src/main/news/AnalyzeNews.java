@@ -127,6 +127,7 @@ public class AnalyzeNews {
 	private static JFrame frame;
 	private static Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
+	private static ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private static String loadingLabelDirectory = "images/loading-image.gif";
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
@@ -138,6 +139,7 @@ public class AnalyzeNews {
 	private JTable informationTable;
 	private String prDate = null;
 	private String prMovement = null;
+	private String symbol;
 	private JPanel searchKeyPanel;
 	private JPanel borderPanel;
 	private JLabel lblAverageScore;
@@ -152,12 +154,10 @@ public class AnalyzeNews {
 	private ChartPanel pieChartPanel;
 	private ChartPanel barChartPanel;
 	private ChartPanel twitterChartPanel;
-	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private Color highlightRed = new Color(242, 44, 67);
 	private Color highlightGreen = new Color(44, 242, 153);
 	private Color highlightGray = new Color(198, 204, 201);
 	private ButtonColumn buttonColumn;
-	private String symbol;
 	private DefaultTableModel headLineTableModel;
 	private DefaultTableModel informationTableModel;
 
