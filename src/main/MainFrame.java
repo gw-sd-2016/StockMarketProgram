@@ -89,44 +89,31 @@ import objects.GeneralData;
 import objects.VolumeDate;
 import popupmessages.CheckInternet;
 
-public class MainFrame extends JFrame implements ActionListener, KeyListener {
+public class MainFrame implements ActionListener, KeyListener {
 	private static final Logger logger = Logger.getLogger(MainFrame.class);
+	private static JFrame frame;
 	private static JPanel contentPane;
+	private static ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
+	private static JTextField searchBox;
+	private static GridBagConstraints gbc_mainChartPanel;
+	private static Map<String, ArrayList<String>> headlinesAndDates;
+	private static JFreeChart mainChart;
+	public static ChartPanel mainChartPanel;
+	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
 	private JMenuBar menuBar;
 	private JMenuItem menuApplication;
 	private JMenuItem menuAppAbout;
 	private JMenuItem menuAppFeedback;
 	private JMenuItem menuAppExit;
-	public static ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
-	public static JTextField searchBox;
-	public static ChartPanel mainChartPanel;
-	public static ChartPanel defaultMainChartPanel;
-	public static GridBagConstraints gbc_mainChartPanel;
-	public static Map<String, String> newsHeadLines = new HashMap<String, String>();
-	public static Map<String, ArrayList<String>> headlinesAndDates;
-	public static Map<String, AnnotationPosition> annotationPositions = new HashMap<String, AnnotationPosition>();
 	private JButton btnNews;
-	public static JLabel lblCompanyName;
-	public static JLabel labelCompany;
+	private JLabel lblCompanyName;
 	private JLabel lblDate;
 	private JLabel lblPressReleasesToBeAn;
 	private JLabel lblAvgDailyVolume;
 	private JLabel lblDayRange;
 	private JLabel lblExchange;
-	public static JFreeChart mainChart;
-	public static JFreeChart defaultMainChart;
-	public String symbol;
+	private String symbol;
 
-	/**
-	 * Launch the application.
-	 * 
-	 * @throws IOException
-	 * @throws InterruptedException
-	 * @throws UnsupportedLookAndFeelException
-	 * @throws IllegalAccessException
-	 * @throws InstantiationException
-	 * @throws ClassNotFoundException
-	 */
 	public static void main(String[] args) throws IOException, InterruptedException, ClassNotFoundException,
 			InstantiationException, IllegalAccessException, UnsupportedLookAndFeelException {
 		BasicConfigurator.configure();
@@ -138,30 +125,27 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		try {
 			MainFrame main = new MainFrame();
-			main.setTitle("Investor PAL");
+			main.createAndShowGUI();
 		} catch (Exception e) {
 			new CheckInternet();
 		}
 	};
 
-	/**
-	 * Create the frame.
-	 * 
-	 * @throws IOException
-	 */
-	public MainFrame() throws IOException {
-		setBounds(100, 100, 1147, 399);
+	public void createAndShowGUI() throws IOException {
+		frame = new JFrame("Investor PAL");
+
+		frame.setBounds(100, 100, 1147, 399);
 
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-		int x = (int) ((dimension.getWidth() - getWidth()) / 2);
-		int y = (int) ((dimension.getHeight() - getHeight()) / 2);
-		setLocation(x, y);
+		int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
+		int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
+		frame.setLocation(x, y);
 
-		setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
+		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
 		menuBar = new JMenuBar();
-		// Set this instance as the application's menu bar
-		setJMenuBar(menuBar);
+		frame.setJMenuBar(menuBar);
+
 		menuApplication = new JMenu("Investor PAL");
 		menuApplication.setFont(new Font("Copperplate Gothic Light", Font.PLAIN, 14));
 
@@ -199,7 +183,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
-		setContentPane(contentPane);
+		frame.setContentPane(contentPane);
 
 		GridBagLayout gbl_contentPane = new GridBagLayout();
 		gbl_contentPane.columnWidths = new int[] { 430, 210, 278, 383, 195, 0 };
@@ -241,13 +225,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		gbl_dashboardPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
 				0.0, 0.0, 0.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		dashboardPanel.setLayout(gbl_dashboardPanel);
-
-		labelCompany = new JLabel("");
-		GridBagConstraints gbc_labelCompany = new GridBagConstraints();
-		gbc_labelCompany.insets = new Insets(0, 0, 5, 0);
-		gbc_labelCompany.gridx = 0;
-		gbc_labelCompany.gridy = 1;
-		dashboardPanel.add(labelCompany, gbc_labelCompany);
 
 		searchBox = new JTextField();
 		GridBagConstraints gbc_searchBox = new GridBagConstraints();
@@ -319,10 +296,9 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		gbc_mainChartPanel.gridx = 0;
 		gbc_mainChartPanel.gridy = 2;
 
-		setVisible(true);
+		frame.setVisible(true);
 	}
 
-	// keeps time and formats nicely
 	class TimeKeeper implements Runnable {
 
 		@Override
@@ -361,7 +337,6 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		mainChart.setBackgroundPaint(new Color(255, 255, 255, 0));
 		mainChart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
-		defaultMainChart = mainChart;
 		XYPlot plot = (XYPlot) mainChart.getPlot();
 
 		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
@@ -603,7 +578,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 	}
 
 	// returns with yyyy-mm-dd
-	public static Calendar returnCalendarWithFormat(String date) {
+	public Calendar returnCalendarWithFormat(String date) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 		try {
@@ -655,7 +630,7 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 		}
 	}
 
-	public static Map<String, ArrayList<String>> getHeadlinesAndDates(Document doc) throws ParseException {
+	public Map<String, ArrayList<String>> getHeadlinesAndDates(Document doc) throws ParseException {
 
 		ArrayList<String> messageTitles = null;
 		Elements newsDates = doc.select("div.mod.yfi_quote_headline.withsky > h3"); // 28
@@ -733,17 +708,8 @@ public class MainFrame extends JFrame implements ActionListener, KeyListener {
 			}
 		} else if (arg0.getActionCommand() == "News") {
 			try {
-				ArrayList<String> headlinesForFiles = new ArrayList<String>();
-
-				for (String date : MainFrame.headlinesAndDates.keySet()) {
-					ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
-
-					for (String ss : headline) {
-						headlinesForFiles.add(ss);
-					}
-				}
-
-				AnalyzeNews newsObject = new AnalyzeNews(symbol, headlinesForFiles);
+				AnalyzeNews newsObject = new AnalyzeNews(symbol, lblCompanyName.getText(), volumeDataDate,
+						headlinesAndDates);
 				newsObject.createAndShowGUI();
 
 				btnNews.setEnabled(false);
