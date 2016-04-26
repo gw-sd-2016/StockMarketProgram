@@ -1,6 +1,7 @@
 package tests;
 
 import static org.junit.Assert.assertEquals;
+
 import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -17,18 +18,27 @@ import org.junit.Before;
 import org.junit.Test;
 import main.news.AnalyzeNews;
 import objects.PressRelease;
+import objects.VolumeDate;
 
 public class AnalyzeNewsTest {
 	private AnalyzeNews news;
-	private ArrayList<String> headlines = new ArrayList<String>();
 	private String symbol;
+	private String companyName;
+	private ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
+	private Map<String, ArrayList<String>> headlinesAndDates = new HashMap<String, ArrayList<String>>();
+	private ArrayList<String> headlines = new ArrayList<String>();
 
 	@Before
 	public void init() throws IOException, ParseException {
+		headlines.add("Title one");
+		headlines.add("Title two");
+		headlines.add("Title three");
+		headlines.add("Title four");
+		headlines.add("Title five");
+		headlinesAndDates.put("2016-11-11", headlines);
 		symbol = "TST";
-		headlines.add("First Headline");
-		headlines.add("Second Headline");
-		news = new AnalyzeNews(symbol, headlines);
+		companyName = "Test Company";
+		news = new AnalyzeNews(symbol, companyName, volumeDataDate, headlinesAndDates);
 	}
 
 	@Test
@@ -129,22 +139,25 @@ public class AnalyzeNewsTest {
 	@Test
 	public void returnDateGivenHeadlineTest() throws ParseException {
 		File f = new File("Title one.txt");
-		Map<String, ArrayList<String>> headlinesAndDates = new HashMap<String, ArrayList<String>>();
-		ArrayList<String> headlinesToTest = new ArrayList<String>();
-
-		headlinesToTest.add("Title one");
-		headlinesToTest.add("Title two");
-		headlinesToTest.add("Title three");
-		headlinesToTest.add("Title four");
-		headlinesToTest.add("Title five");
 
 		Calendar cal = Calendar.getInstance();
-		cal.set(2016, 11, 11, 0, 0, 0);
+		cal.set(2016, 10, 11, 0, 0, 0);
 
 		Date theDate = cal.getTime();
 
-		headlinesAndDates.put("2016-12-11", headlinesToTest);
-
 		assertEquals(news.returnDateGivenHeadline(f, headlinesAndDates).toString(), theDate.toString());
+	}
+
+	@Test
+	public void returnHeadLinesGivenMapTest() {
+		ArrayList<String> expectedResult = new ArrayList<String>();
+
+		expectedResult.add("Title one");
+		expectedResult.add("Title two");
+		expectedResult.add("Title three");
+		expectedResult.add("Title four");
+		expectedResult.add("Title five");
+
+		assertEquals(news.returnHeadLinesGivenMap(headlinesAndDates), expectedResult);
 	}
 }

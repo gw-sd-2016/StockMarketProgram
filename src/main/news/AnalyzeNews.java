@@ -120,6 +120,7 @@ import helpers.PieRenderer;
 import main.MainFrame;
 import objects.IntegerPair;
 import objects.PressRelease;
+import objects.VolumeDate;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
 
@@ -127,7 +128,9 @@ public class AnalyzeNews {
 	private static JFrame frame;
 	private static Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
-	private static ArrayList<String> headlinesForFiles = new ArrayList<String>();
+	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
+	private ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
+	private Map<String, ArrayList<String>> headlinesAndDates;
 	private static String loadingLabelDirectory = "images/loading-image.gif";
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
@@ -140,12 +143,13 @@ public class AnalyzeNews {
 	private String prDate = null;
 	private String prMovement = null;
 	private String symbol;
+	private String companyName;
 	private JPanel searchKeyPanel;
 	private JPanel borderPanel;
 	private JLabel lblAverageScore;
-	private JLabel twitterLoadingLabel;
-	private JLabel sectorLoadingLabel;
-	private JLabel sigTermsLoadingLabel;
+	private JLabel lblTwitterLoading;
+	private JLabel lblSectorLoading;
+	private JLabel lblSigTermsLoading;
 	private JLabel searchLoadingLabel;
 	private JLabel lblSeen;
 	private JLabel lblWord;
@@ -161,9 +165,13 @@ public class AnalyzeNews {
 	private DefaultTableModel headLineTableModel;
 	private DefaultTableModel informationTableModel;
 
-	public AnalyzeNews(String symbol, ArrayList<String> headlineList) throws IOException, ParseException {
+	public AnalyzeNews(String symbol, String companyName, ArrayList<VolumeDate> volumeDataDate,
+			Map<String, ArrayList<String>> headlinesAndDates) throws IOException, ParseException {
 		this.symbol = symbol;
-		this.headlinesForFiles = headlineList;
+		this.companyName = companyName;
+		this.headlinesForFiles = returnHeadLinesGivenMap(headlinesAndDates);
+		this.volumeDataDate = volumeDataDate;
+		this.headlinesAndDates = headlinesAndDates;
 
 		pullDataFromDirectory();
 
@@ -177,7 +185,7 @@ public class AnalyzeNews {
 		frame.setTitle("Investor PAL");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
-		frame.setExtendedState(MainFrame.MAXIMIZED_BOTH);
+		frame.setExtendedState(frame.MAXIMIZED_BOTH);
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
@@ -267,12 +275,12 @@ public class AnalyzeNews {
 		gbc_textField.gridy = 1;
 		frame.getContentPane().add(informationTextField, gbc_textField);
 
-		sigTermsLoadingLabel = new JLabel("");
-		GridBagConstraints gbc_sigTermsLoadingLabel = new GridBagConstraints();
-		gbc_sigTermsLoadingLabel.insets = new Insets(0, 0, 5, 5);
-		gbc_sigTermsLoadingLabel.gridx = 1;
-		gbc_sigTermsLoadingLabel.gridy = 2;
-		frame.getContentPane().add(sigTermsLoadingLabel, gbc_sigTermsLoadingLabel);
+		lblSigTermsLoading = new JLabel("");
+		GridBagConstraints gbc_lblSigTermsLoading = new GridBagConstraints();
+		gbc_lblSigTermsLoading.insets = new Insets(0, 0, 5, 5);
+		gbc_lblSigTermsLoading.gridx = 1;
+		gbc_lblSigTermsLoading.gridy = 2;
+		frame.getContentPane().add(lblSigTermsLoading, gbc_lblSigTermsLoading);
 
 		informationScrollPane = new JScrollPane();
 		informationScrollPane.setEnabled(false);
@@ -326,19 +334,19 @@ public class AnalyzeNews {
 		gbc_twitterChartPanel.gridx = 1;
 		gbc_twitterChartPanel.gridy = 4;
 
-		twitterLoadingLabel = new JLabel("");
-		GridBagConstraints gbc_twitterLoadingLabel = new GridBagConstraints();
-		gbc_twitterLoadingLabel.insets = new Insets(0, 0, 5, 5);
-		gbc_twitterLoadingLabel.gridx = 1;
-		gbc_twitterLoadingLabel.gridy = 4;
-		frame.getContentPane().add(twitterLoadingLabel, gbc_twitterLoadingLabel);
+		lblTwitterLoading = new JLabel("");
+		GridBagConstraints gbc_lblTwitterLoading = new GridBagConstraints();
+		gbc_lblTwitterLoading.insets = new Insets(0, 0, 5, 5);
+		gbc_lblTwitterLoading.gridx = 1;
+		gbc_lblTwitterLoading.gridy = 4;
+		frame.getContentPane().add(lblTwitterLoading, gbc_lblTwitterLoading);
 
-		sectorLoadingLabel = new JLabel("");
-		GridBagConstraints gbc_sectorLoadingLabel = new GridBagConstraints();
-		gbc_sectorLoadingLabel.insets = new Insets(0, 0, 5, 0);
-		gbc_sectorLoadingLabel.gridx = 2;
-		gbc_sectorLoadingLabel.gridy = 0;
-		frame.getContentPane().add(sectorLoadingLabel, gbc_sectorLoadingLabel);
+		lblSectorLoading = new JLabel("");
+		GridBagConstraints gbc_lblSectorLoading = new GridBagConstraints();
+		gbc_lblSectorLoading.insets = new Insets(0, 0, 5, 0);
+		gbc_lblSectorLoading.gridx = 2;
+		gbc_lblSectorLoading.gridy = 0;
+		frame.getContentPane().add(lblSectorLoading, gbc_lblSectorLoading);
 
 		extendedWordScrollPane = new JScrollPane();
 		GridBagConstraints gbc_extendedWordScrollPane1 = new GridBagConstraints();
@@ -453,11 +461,11 @@ public class AnalyzeNews {
 
 		searchKeyPanel.add(neutralLabel, gbc_neutralLabel);
 
-		twitterLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+		lblTwitterLoading.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
-		sectorLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+		lblSectorLoading.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
-		sigTermsLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+		lblSigTermsLoading.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
 		searchLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
@@ -543,9 +551,9 @@ public class AnalyzeNews {
 			// this will get the days volume of press release and the next 3
 			// days (if not what is available)
 
-			for (String date : MainFrame.headlinesAndDates.keySet()) {
+			for (String date : headlinesAndDates.keySet()) {
 				double totalVolume = 0;
-				ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
+				ArrayList<String> headline = headlinesAndDates.get(date);
 				SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 				Calendar volumeDate = Calendar.getInstance();
 
@@ -557,16 +565,16 @@ public class AnalyzeNews {
 					e.printStackTrace();
 				}
 
-				for (int i = 0; i < MainFrame.volumeDataDate.size(); i++) {
+				for (int i = 0; i < volumeDataDate.size(); i++) {
 					int nextThreeDates = i;
 					int nextthreeDatesLimit = i + 4;
 					int howManyDaysAfter = 0;
 
-					if (MainFrame.volumeDataDate.get(i).getCalendar().equals(volumeDate)) {
+					if (volumeDataDate.get(i).getCalendar().equals(volumeDate)) {
 						while (nextThreeDates < nextthreeDatesLimit) {
 
-							if (nextThreeDates < MainFrame.volumeDataDate.size()) {
-								totalVolume += (double) MainFrame.volumeDataDate.get(nextThreeDates).getVolume();
+							if (nextThreeDates < volumeDataDate.size()) {
+								totalVolume += (double) volumeDataDate.get(nextThreeDates).getVolume();
 								howManyDaysAfter++;
 								nextThreeDates++;
 
@@ -575,13 +583,13 @@ public class AnalyzeNews {
 							}
 						}
 
-						if (totalVolume / howManyDaysAfter < MainFrame.volumeDataDate.get(i).getVolume()) {
+						if (totalVolume / howManyDaysAfter < volumeDataDate.get(i).getVolume()) {
 							buttonColumn = new ButtonColumn(headLineTable, pressButtonAction, 4);
 							buttonColumn.setEnabled(false);
 
 							for (String ss : headline) {
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-										MainFrame.volumeDataDate.get(i).getDateAsString(), "Down", "Read" });
+										volumeDataDate.get(i).getDateAsString(), "Down", "Read" });
 							}
 						} else {
 							for (String ss : headline) {
@@ -589,7 +597,7 @@ public class AnalyzeNews {
 								buttonColumn.setEnabled(false);
 
 								headLineTableModel.addRow(new Object[] { ++numberOfPRs, cleanText(ss),
-										MainFrame.volumeDataDate.get(i).getDateAsString(), "Up", "Read" });
+										volumeDataDate.get(i).getDateAsString(), "Up", "Read" });
 							}
 						}
 					}
@@ -611,7 +619,7 @@ public class AnalyzeNews {
 					}
 				}
 
-				Collections.reverse(MainFrame.volumeDataDate);
+				Collections.reverse(volumeDataDate);
 			}
 
 			numberOfFiles = 0;
@@ -736,8 +744,8 @@ public class AnalyzeNews {
 
 				prMovement = informationTable.getModel().getValueAt(row, 4).toString();
 
-				for (String date : MainFrame.headlinesAndDates.keySet()) {
-					ArrayList<String> headline = MainFrame.headlinesAndDates.get(date);
+				for (String date : headlinesAndDates.keySet()) {
+					ArrayList<String> headline = headlinesAndDates.get(date);
 
 					for (String ss : headline) {
 						if ((cleanText(ss) + ".txt").equals(cleanText(prTitle))) {
@@ -856,6 +864,18 @@ public class AnalyzeNews {
 		}
 	}
 
+	public ArrayList<String> returnHeadLinesGivenMap(Map<String, ArrayList<String>> list) {
+		ArrayList<String> result = new ArrayList<String>();
+
+		for (String s : list.keySet()) {
+			for (String ss : list.get(s)) {
+				result.add(ss);
+			}
+		}
+
+		return result;
+	}
+
 	public PressRelease returnPressReleaseGivenTitle(String title, ArrayList<PressRelease> list) {
 		if (list.size() == 0) {
 			try {
@@ -951,7 +971,7 @@ public class AnalyzeNews {
 			}
 		}
 
-		sigTermsLoadingLabel.setVisible(false);
+		lblSigTermsLoading.setVisible(false);
 
 		final CategoryDataset dataset = createDatasetForBarChart();
 		final JFreeChart chart = createBarChart(dataset);
@@ -979,7 +999,7 @@ public class AnalyzeNews {
 		frame.getContentPane().revalidate();
 		frame.getContentPane().repaint();
 
-		sectorLoadingLabel.setVisible(false);
+		lblSectorLoading.setVisible(false);
 	}
 
 	private void pullDataFromDirectory() throws IOException, ParseException {
@@ -999,7 +1019,7 @@ public class AnalyzeNews {
 					}
 
 					pressReleases.add(new PressRelease(file.getName(), content,
-							returnDateGivenHeadline(file, MainFrame.headlinesAndDates)));
+							returnDateGivenHeadline(file, headlinesAndDates)));
 				}
 			}
 		}
@@ -1183,7 +1203,7 @@ public class AnalyzeNews {
 				chart.setPadding(new RectangleInsets(10, 5, 5, 5));
 
 				twitterChartPanel = new ChartPanel(chart);
-				twitterLoadingLabel.setVisible(false);
+				lblTwitterLoading.setVisible(false);
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
@@ -1370,12 +1390,13 @@ public class AnalyzeNews {
 	}
 
 	private JFreeChart createBarChart(final CategoryDataset dataset) {
-		final JFreeChart chart = ChartFactory.createBarChart(MainFrame.lblCompanyName.getText().replace("Name: ", ""),
-				null, "Value", dataset, PlotOrientation.VERTICAL, true, true, false);
+		final JFreeChart chart = ChartFactory.createBarChart(symbol, null, "Value", dataset, PlotOrientation.VERTICAL,
+				true, true, false);
 
 		chart.setBackgroundPaint(Color.white);
 		chart.setBackgroundPaint(new Color(255, 255, 255, 0));
 		chart.setPadding(new RectangleInsets(10, 5, 5, 5));
+		chart.setTitle(companyName.replace("Name:", ""));
 
 		final CategoryPlot plot = chart.getCategoryPlot();
 		plot.setBackgroundPaint(Color.lightGray);

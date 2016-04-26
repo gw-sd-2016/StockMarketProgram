@@ -13,12 +13,20 @@ import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import main.MainFrame;
 
 public class MainFrameTest {
+	private MainFrame main;
+
+	@Before
+	public void init() throws IOException, ParseException {
+		main = new MainFrame();
+	}
+
 	@Rule
 	public TemporaryFolder tempFolder = new TemporaryFolder();
 
@@ -30,7 +38,8 @@ public class MainFrameTest {
 		Calendar volumeDate = Calendar.getInstance();
 		volumeDate.setTime(dates);
 
-		Calendar result = MainFrame.returnCalendarWithFormat("1994-08-15");
+		Calendar result = main.returnCalendarWithFormat("1994-08-15");
+
 		assertEquals(result, volumeDate);
 	}
 
@@ -46,7 +55,12 @@ public class MainFrameTest {
 
 		expectedResult.put("2016-03-02", titles);
 
-		assertEquals(expectedResult, MainFrame.getHeadlinesAndDates(doc));
+		assertEquals(expectedResult, main.getHeadlinesAndDates(doc));
+	}
+
+	@Test
+	public void changeDateFormatTest() {
+
 	}
 
 	@Test
