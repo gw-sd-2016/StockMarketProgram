@@ -495,8 +495,6 @@ public class MainFrame implements ActionListener, KeyListener {
 
 			mainChartPanel.addOverlay(crosshairOverlay);
 
-			// defaultMainChart = chart;
-
 			contentPane.add(mainChartPanel, gbc_mainChartPanel);
 		}
 
@@ -665,24 +663,6 @@ public class MainFrame implements ActionListener, KeyListener {
 		newFormat.format(date);
 
 		return newFormat.format(date).toString();
-	}
-
-	// for the breakout board list - changing the colors
-	private static class MyListCellRenderer extends DefaultListCellRenderer {
-		public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-				boolean cellHasFocus) {
-			Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-
-			if (value.toString().contains("(" + MainFrame.searchBox.getText().toUpperCase() + ")")) {
-				c.setBackground(Color.GRAY.brighter());
-				c.setForeground(Color.MAGENTA);
-
-			} else {
-
-			}
-
-			return c;
-		}
 	}
 
 	public void actionPerformed(ActionEvent arg0) {
