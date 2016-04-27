@@ -128,10 +128,10 @@ public class AnalyzeNews {
 	private static JFrame frame;
 	private static Map<String, String> tweetSentimentAndContent = new HashMap<String, String>();
 	private static ArrayList<PressRelease> pressReleases = new ArrayList<PressRelease>();
+	private static String loadingLabelDirectory = "images/loading-image.gif";
 	private ArrayList<String> headlinesForFiles = new ArrayList<String>();
 	private ArrayList<VolumeDate> volumeDataDate = new ArrayList<VolumeDate>();
 	private Map<String, ArrayList<String>> headlinesAndDates;
-	private static String loadingLabelDirectory = "images/loading-image.gif";
 	private GridBagConstraints gbc_pieChartPanel;
 	private GridBagConstraints gbc_barChartPanel;
 	private GridBagConstraints gbc_twitterChartPanel;
@@ -150,7 +150,7 @@ public class AnalyzeNews {
 	private JLabel lblTwitterLoading;
 	private JLabel lblSectorLoading;
 	private JLabel lblSigTermsLoading;
-	private JLabel searchLoadingLabel;
+	private JLabel lblSearchLoading;
 	private JLabel lblSeen;
 	private JLabel lblWord;
 	private JTextComponent informationTextField;
@@ -181,16 +181,16 @@ public class AnalyzeNews {
 
 	public void createAndShowGUI() throws IOException {
 		frame = new JFrame("Investor PAL");
-
 		frame.setTitle("Investor PAL");
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
-
 		frame.setExtendedState(frame.MAXIMIZED_BOTH);
+
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		gridBagLayout.columnWidths = new int[] { 0, 0, 509, 0 };
 		gridBagLayout.rowHeights = new int[] { 197, 0, 229, 0, 293, 0, 0 };
 		gridBagLayout.columnWeights = new double[] { 0.0, 1.0, 1.0, Double.MIN_VALUE };
 		gridBagLayout.rowWeights = new double[] { 0.0, 0.0, 1.0, 0.0, 1.0, 1.0, Double.MIN_VALUE };
+
 		frame.getContentPane().setLayout(gridBagLayout);
 
 		headlineScrollPane = new JScrollPane();
@@ -199,6 +199,7 @@ public class AnalyzeNews {
 		gbc_headlineScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_headlineScrollPane.gridx = 1;
 		gbc_headlineScrollPane.gridy = 0;
+
 		frame.getContentPane().add(headlineScrollPane, gbc_headlineScrollPane);
 
 		headLineTable = new JTable() {
@@ -206,7 +207,6 @@ public class AnalyzeNews {
 				return column == 4;
 			}
 
-			// Implement table cell tool tips.
 			public String getToolTipText(MouseEvent e) {
 				String tip = null;
 				java.awt.Point p = e.getPoint();
@@ -261,7 +261,6 @@ public class AnalyzeNews {
 			@Override
 			public void keyPressed(KeyEvent arg0) {
 				if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
-
 					numberOfTimesSeenPressRelease();
 					numberOfTimesSeenTwitter();
 				}
@@ -273,6 +272,7 @@ public class AnalyzeNews {
 		gbc_textField.insets = new Insets(0, 0, 5, 0);
 		gbc_textField.gridx = 2;
 		gbc_textField.gridy = 1;
+
 		frame.getContentPane().add(informationTextField, gbc_textField);
 
 		lblSigTermsLoading = new JLabel("");
@@ -280,6 +280,7 @@ public class AnalyzeNews {
 		gbc_lblSigTermsLoading.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSigTermsLoading.gridx = 1;
 		gbc_lblSigTermsLoading.gridy = 2;
+
 		frame.getContentPane().add(lblSigTermsLoading, gbc_lblSigTermsLoading);
 
 		informationScrollPane = new JScrollPane();
@@ -289,6 +290,7 @@ public class AnalyzeNews {
 		gbc_extendedWordScrollPane.fill = GridBagConstraints.BOTH;
 		gbc_extendedWordScrollPane.gridx = 2;
 		gbc_extendedWordScrollPane.gridy = 2;
+
 		frame.getContentPane().add(informationScrollPane, gbc_extendedWordScrollPane);
 
 		informationTable = new JTable();
@@ -339,6 +341,7 @@ public class AnalyzeNews {
 		gbc_lblTwitterLoading.insets = new Insets(0, 0, 5, 5);
 		gbc_lblTwitterLoading.gridx = 1;
 		gbc_lblTwitterLoading.gridy = 4;
+
 		frame.getContentPane().add(lblTwitterLoading, gbc_lblTwitterLoading);
 
 		lblSectorLoading = new JLabel("");
@@ -346,6 +349,7 @@ public class AnalyzeNews {
 		gbc_lblSectorLoading.insets = new Insets(0, 0, 5, 0);
 		gbc_lblSectorLoading.gridx = 2;
 		gbc_lblSectorLoading.gridy = 0;
+
 		frame.getContentPane().add(lblSectorLoading, gbc_lblSectorLoading);
 
 		extendedWordScrollPane = new JScrollPane();
@@ -354,6 +358,7 @@ public class AnalyzeNews {
 		gbc_extendedWordScrollPane1.fill = GridBagConstraints.BOTH;
 		gbc_extendedWordScrollPane1.gridx = 2;
 		gbc_extendedWordScrollPane1.gridy = 4;
+
 		frame.getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
 
 		class ImageToolTipUI extends MetalToolTipUI {
@@ -404,7 +409,7 @@ public class AnalyzeNews {
 			}
 		};
 
-		searchLoadingLabel = new JLabel("");
+		lblSearchLoading = new JLabel("");
 
 		extendedWordScrollPane.setViewportView(extendedTextPane);
 
@@ -436,6 +441,7 @@ public class AnalyzeNews {
 		gbc_positiveLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_positiveLabel.gridx = 0;
 		gbc_positiveLabel.gridy = 0;
+
 		searchKeyPanel.add(positiveLabel, gbc_positiveLabel);
 
 		JLabel negativeLabel = new JLabel("Positive");
@@ -447,6 +453,7 @@ public class AnalyzeNews {
 		gbc_negativeLabel.insets = new Insets(0, 0, 5, 5);
 		gbc_negativeLabel.gridx = 1;
 		gbc_negativeLabel.gridy = 0;
+
 		searchKeyPanel.add(negativeLabel, gbc_negativeLabel);
 
 		JLabel neutralLabel = new JLabel("Neutral");
@@ -467,9 +474,9 @@ public class AnalyzeNews {
 
 		lblSigTermsLoading.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
-		searchLoadingLabel.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
+		lblSearchLoading.setIcon(new ImageIcon(new ImageIcon(loadingLabelDirectory).getImage()));
 
-		searchLoadingLabel.setVisible(false);
+		lblSearchLoading.setVisible(false);
 
 		borderPanel = new JPanel();
 		borderPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Statistics",
@@ -481,6 +488,7 @@ public class AnalyzeNews {
 		gbc_borderPanel.insets = new Insets(0, 0, 0, 5);
 		gbc_borderPanel.gridx = 0;
 		gbc_borderPanel.gridy = 1;
+
 		searchKeyPanel.add(borderPanel, gbc_borderPanel);
 
 		GridBagLayout gbl_borderPanel = new GridBagLayout();
@@ -488,6 +496,7 @@ public class AnalyzeNews {
 		gbl_borderPanel.rowHeights = new int[] { 0, 0, 0, 0 };
 		gbl_borderPanel.columnWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
 		gbl_borderPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+
 		borderPanel.setLayout(gbl_borderPanel);
 
 		lblWord = new JLabel("Word: -");
@@ -496,6 +505,7 @@ public class AnalyzeNews {
 		gbc_lblWord.insets = new Insets(0, 0, 5, 5);
 		gbc_lblWord.gridx = 0;
 		gbc_lblWord.gridy = 0;
+
 		borderPanel.add(lblWord, gbc_lblWord);
 
 		lblSeen = new JLabel("Seen: -");
@@ -504,6 +514,7 @@ public class AnalyzeNews {
 		gbc_lblSeen.insets = new Insets(0, 0, 5, 5);
 		gbc_lblSeen.gridx = 0;
 		gbc_lblSeen.gridy = 1;
+
 		borderPanel.add(lblSeen, gbc_lblSeen);
 
 		lblAverageScore = new JLabel("Average Score: -");
@@ -511,6 +522,7 @@ public class AnalyzeNews {
 		gbc_lblAverageScore.gridwidth = 3;
 		gbc_lblAverageScore.gridx = 0;
 		gbc_lblAverageScore.gridy = 2;
+
 		borderPanel.add(lblAverageScore, gbc_lblAverageScore);
 
 		gbc_pieChartPanel = new GridBagConstraints();
@@ -534,7 +546,6 @@ public class AnalyzeNews {
 
 	Runnable retrieveNews = new Runnable() {
 		public void run() {
-
 			Document doc = null;
 
 			try {
@@ -663,9 +674,9 @@ public class AnalyzeNews {
 		public void run() {
 			extendedTextPane.setToolTipText("");
 			extendedTextPane.setEnabled(false);
-			extendedWordScrollPane.setRowHeaderView(searchLoadingLabel);
+			extendedWordScrollPane.setRowHeaderView(lblSearchLoading);
 			extendedTextPane.setText("");
-			searchLoadingLabel.setVisible(true);
+			lblSearchLoading.setVisible(true);
 
 			String type = informationTable.getModel().getValueAt(row, 0).toString();
 
@@ -722,7 +733,9 @@ public class AnalyzeNews {
 				}
 
 				extendedTextPane.setEnabled(true);
-				searchLoadingLabel.setVisible(false);
+
+				lblSearchLoading.setVisible(false);
+
 				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
 
 				lblAverageScore.setText("Average Score: -");
@@ -856,7 +869,7 @@ public class AnalyzeNews {
 
 				extendedTextPane.setCaretPosition(0);
 				extendedTextPane.setEnabled(true);
-				searchLoadingLabel.setVisible(false);
+				lblSearchLoading.setVisible(false);
 				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
 			}
 
@@ -1292,13 +1305,6 @@ public class AnalyzeNews {
 
 		plot.setFixedLegendItems(chartLegend);
 
-		// SymbolAxis rangeAxis = new SymbolAxis(null,
-		// listOfDates(tweetDateAndContent));
-		//
-		// rangeAxis.setTickUnit(new NumberTickUnit(1));
-		// rangeAxis.setRange(0, listOfDates(tweetDateAndContent).length);
-		// plot.setRangeAxis(rangeAxis);
-
 		final XYLineAndShapeRenderer renderer = new XYLineAndShapeRenderer();
 		renderer.setSeriesLinesVisible(0, false);
 		renderer.setSeriesShapesVisible(1, false);
@@ -1420,7 +1426,6 @@ public class AnalyzeNews {
 		return chart;
 	}
 
-	// return if a word was seen based on frequency map
 	private int wordExists(String headline, String word) {
 		int numberOfTimesSeen = 0;
 		Map<String, Integer> result = new HashMap<String, Integer>();
@@ -1451,7 +1456,7 @@ public class AnalyzeNews {
 
 				if (numberOfTimesSeen > 0) {
 					informationTableModel.addRow(new Object[] { "Press Release", word, title, numberOfTimesSeen,
-							headLineTable.getModel().getValueAt(returnRowNumber(title), 3) });
+							headLineTable.getModel().getValueAt(returnRowNumberGivenHeadline(title), 3) });
 				}
 			}
 		}
@@ -1461,7 +1466,6 @@ public class AnalyzeNews {
 		String[] search = informationTextField.getText().split(" ");
 		Map<String, Integer> result = new HashMap<String, Integer>();
 
-		// number of times seen for tweets
 		for (String tweet : tweetSentimentAndContent.keySet()) {
 			for (String word : search) {
 				result = wordFrequency(tweet);
@@ -1474,10 +1478,8 @@ public class AnalyzeNews {
 		}
 	}
 
-	// returns the row that the headline is in
-	private int returnRowNumber(String find) {
+	private int returnRowNumberGivenHeadline(String find) {
 		for (int row = 0; row < headLineTable.getModel().getRowCount(); row++) {
-
 			if (find.contains(headLineTable.getModel().getValueAt(row, 1).toString())) {
 
 				return row;
@@ -1491,13 +1493,9 @@ public class AnalyzeNews {
 		Map<String, Integer> myMap = new HashMap<String, Integer>();
 
 		String words = xlo;
-
 		String lowerCase = words.toLowerCase();
-		String alphaOnly = lowerCase.replaceAll("\\W", " "); // Replaces all
-																// special
-																// characters
-		String finalString = alphaOnly.replaceAll("[0-9]", " "); // Gets rid of
-																	// numbers
+		String alphaOnly = lowerCase.replaceAll("\\W", " ");
+		String finalString = alphaOnly.replaceAll("[0-9]", " ");
 		String[] array = finalString.split("\\s+");
 
 		for (String name : array) {
