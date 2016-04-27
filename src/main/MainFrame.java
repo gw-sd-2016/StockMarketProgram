@@ -130,14 +130,13 @@ public class MainFrame implements ActionListener, KeyListener {
 
 	public void createAndShowGUI() throws IOException {
 		frame = new JFrame("Investor PAL");
-
 		frame.setBounds(100, 100, 1147, 399);
 
 		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
 		int x = (int) ((dimension.getWidth() - frame.getWidth()) / 2);
 		int y = (int) ((dimension.getHeight() - frame.getHeight()) / 2);
-		frame.setLocation(x, y);
 
+		frame.setLocation(x, y);
 		frame.setIconImage(Toolkit.getDefaultToolkit().getImage("images/taskbarlogo.png"));
 
 		menuBar = new JMenuBar();
@@ -180,6 +179,7 @@ public class MainFrame implements ActionListener, KeyListener {
 
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
+
 		frame.setContentPane(contentPane);
 
 		GridBagLayout gbl_contentPane = new GridBagLayout();
@@ -196,6 +196,7 @@ public class MainFrame implements ActionListener, KeyListener {
 		gbc_btnNews.gridx = 0;
 		gbc_btnNews.gridy = 0;
 		contentPane.add(btnNews, gbc_btnNews);
+
 		btnNews.setEnabled(false);
 		btnNews.addActionListener(this);
 
@@ -205,6 +206,7 @@ public class MainFrame implements ActionListener, KeyListener {
 		gbc_lblDate.insets = new Insets(0, 0, 5, 5);
 		gbc_lblDate.gridx = 3;
 		gbc_lblDate.gridy = 0;
+
 		contentPane.add(lblDate, gbc_lblDate);
 
 		JPanel dashboardPanel = new JPanel();
@@ -224,12 +226,15 @@ public class MainFrame implements ActionListener, KeyListener {
 		dashboardPanel.setLayout(gbl_dashboardPanel);
 
 		searchBox = new JTextField();
+
 		GridBagConstraints gbc_searchBox = new GridBagConstraints();
 		gbc_searchBox.insets = new Insets(0, 0, 5, 0);
 		gbc_searchBox.fill = GridBagConstraints.BOTH;
 		gbc_searchBox.gridx = 0;
 		gbc_searchBox.gridy = 2;
+
 		dashboardPanel.add(searchBox, gbc_searchBox);
+
 		searchBox.setColumns(10);
 		searchBox.addKeyListener(this);
 
@@ -297,7 +302,6 @@ public class MainFrame implements ActionListener, KeyListener {
 	}
 
 	class TimeKeeper implements Runnable {
-
 		@Override
 		public void run() {
 			while (true) {
@@ -336,10 +340,11 @@ public class MainFrame implements ActionListener, KeyListener {
 
 		XYPlot plot = (XYPlot) mainChart.getPlot();
 
-		NumberAxis rangeAxis1 = (NumberAxis) plot.getRangeAxis();
-		rangeAxis1.setLowerMargin(0);
+		NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
+		rangeAxis.setLowerMargin(0);
+
 		DecimalFormat format = new DecimalFormat("###,###");
-		rangeAxis1.setNumberFormatOverride(format);
+		rangeAxis.setNumberFormatOverride(format);
 
 		XYItemRenderer renderer1 = plot.getRenderer();
 		renderer1.setBaseToolTipGenerator(
@@ -382,12 +387,10 @@ public class MainFrame implements ActionListener, KeyListener {
 					}
 
 					int dismissDelay = ToolTipManager.sharedInstance().getDismissDelay();
-					// Keep the tool tip showing
 					dismissDelay = Integer.MAX_VALUE;
+
 					ToolTipManager.sharedInstance().setDismissDelay(dismissDelay);
 
-					// use html tags to break tooltiptext into separate
-					// lines
 					headLineAnnotation.setToolTipText("<html>" + listString + "</html>");
 					headLineAnnotation.setTextAnchor(TextAnchor.HALF_ASCENT_RIGHT);
 					plot.addAnnotation(headLineAnnotation);
@@ -487,6 +490,7 @@ public class MainFrame implements ActionListener, KeyListener {
 			xCrosshair.setLabelVisible(false);
 			yCrosshair = new Crosshair(Double.NaN, Color.GRAY, new BasicStroke(0f));
 			yCrosshair.setLabelVisible(true);
+
 			crosshairOverlay.addDomainCrosshair(xCrosshair);
 			crosshairOverlay.addRangeCrosshair(yCrosshair);
 
@@ -539,12 +543,10 @@ public class MainFrame implements ActionListener, KeyListener {
 		r.setSeriesShapesVisible(0, true);
 
 		int dismissDelay = ToolTipManager.sharedInstance().getDismissDelay();
-		// Keep the tool tip showing
 		dismissDelay = Integer.MAX_VALUE;
+
 		ToolTipManager.sharedInstance().setDismissDelay(dismissDelay);
 
-		// use html tags to break tooltiptext into separate
-		// lines
 		for (String annotationDate : annotationPositions.keySet()) {
 			XYPointerAnnotation headLineAnnotation;
 			String headlineList = "";
@@ -572,7 +574,6 @@ public class MainFrame implements ActionListener, KeyListener {
 		plot.removeAnnotation(movementAnnotation);
 	}
 
-	// returns with yyyy-mm-dd
 	public Calendar returnCalendarWithFormat(String date) {
 		SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -636,6 +637,7 @@ public class MainFrame implements ActionListener, KeyListener {
 			Element e = newsDates.get(i);
 			Element nextSib = e.nextElementSibling();
 			Elements divs = nextSib.select("a");
+
 			messageTitles = new ArrayList<String>();
 
 			for (int j = 0; j < divs.size(); j++) {
