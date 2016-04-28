@@ -1,10 +1,7 @@
 package main.news;
 
 import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.FontMetrics;
 import java.awt.GradientPaint;
-import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
@@ -48,7 +45,6 @@ import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -56,12 +52,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.JToolTip;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.border.TitledBorder;
-import javax.swing.plaf.metal.MetalToolTipUI;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.text.AttributeSet;
@@ -117,12 +110,13 @@ import edu.stanford.nlp.trees.Tree;
 import edu.stanford.nlp.util.CoreMap;
 import helpers.ButtonColumn;
 import helpers.PieRenderer;
-import main.MainFrame;
 import objects.IntegerPair;
 import objects.PressRelease;
 import objects.VolumeDate;
 import popupmessages.CheckInternet;
 import popupmessages.ReadNewsContent;
+import popupmessages.ViewMovementOnGraph;
+import javax.swing.JButton;
 
 public class AnalyzeNews {
 	private static JFrame frame;
@@ -137,7 +131,7 @@ public class AnalyzeNews {
 	private GridBagConstraints gbc_twitterChartPanel;
 	private JScrollPane headlineScrollPane;
 	private JScrollPane informationScrollPane;
-	private JScrollPane extendedWordScrollPane;
+	private JScrollPane searchResultsScrollPane;
 	private JTable headLineTable;
 	private JTable informationTable;
 	private String prDate = null;
@@ -154,7 +148,7 @@ public class AnalyzeNews {
 	private JLabel lblSeen;
 	private JLabel lblWord;
 	private JTextComponent informationTextField;
-	private JTextPane extendedTextPane;
+	private JTextPane searchResultsBox;
 	private ChartPanel pieChartPanel;
 	private ChartPanel barChartPanel;
 	private ChartPanel twitterChartPanel;
@@ -179,6 +173,9 @@ public class AnalyzeNews {
 		new Thread(retrieveTwitter).start();
 	}
 
+	/**
+	 * @wbp.parser.entryPoint
+	 */
 	public void createAndShowGUI() throws IOException {
 		frame = new JFrame("Investor PAL");
 		frame.setTitle("Investor PAL");
@@ -352,66 +349,21 @@ public class AnalyzeNews {
 
 		frame.getContentPane().add(lblSectorLoading, gbc_lblSectorLoading);
 
-		extendedWordScrollPane = new JScrollPane();
-		GridBagConstraints gbc_extendedWordScrollPane1 = new GridBagConstraints();
-		gbc_extendedWordScrollPane1.insets = new Insets(0, 0, 5, 0);
-		gbc_extendedWordScrollPane1.fill = GridBagConstraints.BOTH;
-		gbc_extendedWordScrollPane1.gridx = 2;
-		gbc_extendedWordScrollPane1.gridy = 4;
+		searchResultsScrollPane = new JScrollPane();
 
-		frame.getContentPane().add(extendedWordScrollPane, gbc_extendedWordScrollPane1);
+		GridBagConstraints gbc_searchResultsScrollPane = new GridBagConstraints();
+		gbc_searchResultsScrollPane.insets = new Insets(0, 0, 5, 0);
+		gbc_searchResultsScrollPane.fill = GridBagConstraints.BOTH;
+		gbc_searchResultsScrollPane.gridx = 2;
+		gbc_searchResultsScrollPane.gridy = 4;
 
-		class ImageToolTipUI extends MetalToolTipUI {
-			double annotationPosX = MainFrame.annotationPositions.get(prDate).returnPositionX();
-			double annotationPosY = MainFrame.annotationPositions.get(prDate).returnPositionY();
+		frame.getContentPane().add(searchResultsScrollPane, gbc_searchResultsScrollPane);
 
-			ImageIcon newImage = new ImageIcon(MainFrame.returnChartImageAndResize(prMovement, annotationPosX,
-					annotationPosY, MainFrame.mainChartPanel.getWidth(), MainFrame.mainChartPanel.getHeight(), prDate));
-
-			public void paint(Graphics g, JComponent c) {
-
-				FontMetrics metrics = c.getFontMetrics(g.getFont());
-				g.setColor(c.getForeground());
-				g.drawString(((JToolTip) c).getTipText(), 1, 1);
-				g.drawImage(newImage.getImage(), 1, metrics.getHeight(), c);
-			}
-
-			public Dimension getPreferredSize(JComponent c) {
-				FontMetrics metrics = c.getFontMetrics(c.getFont());
-				String tipText = ((JToolTip) c).getTipText();
-
-				if (tipText == null) {
-					tipText = "";
-				}
-
-				Image image = newImage.getImage();
-
-				int width = SwingUtilities.computeStringWidth(metrics, tipText);
-				int height = metrics.getHeight() + image.getHeight(c);
-
-				if (width < image.getWidth(c)) {
-					width = image.getWidth(c);
-				}
-
-				return new Dimension(width, height);
-			}
-		}
-
-		class ImageToolTip extends JToolTip {
-			public ImageToolTip() {
-				setUI(new ImageToolTipUI());
-			}
-		}
-
-		extendedTextPane = new JTextPane() {
-			public JToolTip createToolTip() {
-				return new ImageToolTip();
-			}
-		};
+		searchResultsBox = new JTextPane();
 
 		lblSearchLoading = new JLabel("");
 
-		extendedWordScrollPane.setViewportView(extendedTextPane);
+		searchResultsScrollPane.setViewportView(searchResultsBox);
 
 		searchKeyPanel = new JPanel();
 		GridBagConstraints gbc_searchKeyPanel = new GridBagConstraints();
@@ -427,9 +379,10 @@ public class AnalyzeNews {
 
 		GridBagLayout gbl_searchKeyPanel = new GridBagLayout();
 		gbl_searchKeyPanel.columnWidths = new int[] { 67, 86, 59, 0 };
-		gbl_searchKeyPanel.rowHeights = new int[] { 20, 0, 0 };
+		gbl_searchKeyPanel.rowHeights = new int[] { 20, 0, 0, 0 };
 		gbl_searchKeyPanel.columnWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
-		gbl_searchKeyPanel.rowWeights = new double[] { 0.0, 0.0, Double.MIN_VALUE };
+		gbl_searchKeyPanel.rowWeights = new double[] { 0.0, 0.0, 0.0, Double.MIN_VALUE };
+
 		searchKeyPanel.setLayout(gbl_searchKeyPanel);
 
 		JLabel positiveLabel = new JLabel("Negative");
@@ -478,6 +431,21 @@ public class AnalyzeNews {
 
 		lblSearchLoading.setVisible(false);
 
+		btnView = new JButton("View");
+		btnView.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mousePressed(MouseEvent arg0) {
+				new ViewMovementOnGraph(prDate, prMovement);
+			}
+		});
+
+		GridBagConstraints gbc_btnView = new GridBagConstraints();
+		gbc_btnView.insets = new Insets(0, 0, 5, 5);
+		gbc_btnView.gridx = 1;
+		gbc_btnView.gridy = 1;
+
+		searchKeyPanel.add(btnView, gbc_btnView);
+
 		borderPanel = new JPanel();
 		borderPanel.setBorder(new TitledBorder(UIManager.getBorder("TitledBorder.border"), "Statistics",
 				TitledBorder.LEADING, TitledBorder.TOP, null, new Color(0, 0, 0)));
@@ -485,9 +453,8 @@ public class AnalyzeNews {
 		GridBagConstraints gbc_borderPanel = new GridBagConstraints();
 		gbc_borderPanel.fill = GridBagConstraints.VERTICAL;
 		gbc_borderPanel.gridwidth = 3;
-		gbc_borderPanel.insets = new Insets(0, 0, 0, 5);
 		gbc_borderPanel.gridx = 0;
-		gbc_borderPanel.gridy = 1;
+		gbc_borderPanel.gridy = 2;
 
 		searchKeyPanel.add(borderPanel, gbc_borderPanel);
 
@@ -672,10 +639,10 @@ public class AnalyzeNews {
 		}
 
 		public void run() {
-			extendedTextPane.setToolTipText("");
-			extendedTextPane.setEnabled(false);
-			extendedWordScrollPane.setRowHeaderView(lblSearchLoading);
-			extendedTextPane.setText("");
+			searchResultsBox.setEditable(true);
+			searchResultsBox.setEnabled(false);
+			searchResultsScrollPane.setRowHeaderView(lblSearchLoading);
+			searchResultsBox.setText("");
 			lblSearchLoading.setVisible(true);
 
 			String type = informationTable.getModel().getValueAt(row, 0).toString();
@@ -688,9 +655,11 @@ public class AnalyzeNews {
 				String tweetContent = informationTable.getModel().getValueAt(row, 2).toString();
 				String tweetSentiment = informationTable.getModel().getValueAt(row, 4).toString();
 
-				appendToPane(extendedTextPane, tweetContent, Color.BLACK);
+				appendToPane(searchResultsBox, tweetContent, Color.BLACK);
 
-				Highlighter highlightWord = extendedTextPane.getHighlighter();
+				searchResultsBox.setEditable(false);
+
+				Highlighter highlightWord = searchResultsBox.getHighlighter();
 
 				if (tweetSentiment.equals("Positive")) {
 					int start = 0;
@@ -732,11 +701,11 @@ public class AnalyzeNews {
 					}
 				}
 
-				extendedTextPane.setEnabled(true);
+				searchResultsBox.setEnabled(true);
 
 				lblSearchLoading.setVisible(false);
 
-				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
+				searchResultsScrollPane.setRowHeaderView(searchResultsBox);
 
 				lblAverageScore.setText("Average Score: -");
 			} else if (type.equals("Press Release")) {
@@ -767,9 +736,9 @@ public class AnalyzeNews {
 					}
 				}
 
-				appendToPane(extendedTextPane, prContent + ".", Color.BLACK);
+				appendToPane(searchResultsBox, prContent + ".", Color.BLACK);
 
-				Highlighter highlightWord = extendedTextPane.getHighlighter();
+				Highlighter highlightWord = searchResultsBox.getHighlighter();
 
 				Map<String, IntegerPair> sentencesToReview = returnSentencesFromPressRelease(prContent + ".",
 						wordToSearch);
@@ -867,13 +836,14 @@ public class AnalyzeNews {
 				lblWord.setText("Word: " + wordToSearch);
 				lblSeen.setText("Seen: " + String.valueOf(timesSeen) + " / " + prContentWordCount);
 
-				extendedTextPane.setCaretPosition(0);
-				extendedTextPane.setEnabled(true);
+				searchResultsBox.setCaretPosition(0);
+				searchResultsBox.setEnabled(true);
 				lblSearchLoading.setVisible(false);
-				extendedWordScrollPane.setRowHeaderView(extendedTextPane);
+				searchResultsBox.setEditable(false);
+				searchResultsScrollPane.setRowHeaderView(searchResultsBox);
 			}
 
-			extendedWordScrollPane.setViewportView(extendedTextPane);
+			searchResultsScrollPane.setViewportView(searchResultsBox);
 		}
 	}
 
@@ -1228,6 +1198,7 @@ public class AnalyzeNews {
 			numberOfTimesSeenTwitter();
 		}
 	};
+	private JButton btnView;
 
 	public static ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
