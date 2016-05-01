@@ -138,6 +138,7 @@ public class AnalyzeNews {
 	private String prMovement = null;
 	private String symbol;
 	private String companyName;
+	private JButton btnView;
 	private JPanel searchKeyPanel;
 	private JPanel borderPanel;
 	private JLabel lblAverageScore;
@@ -260,6 +261,8 @@ public class AnalyzeNews {
 				if (arg0.getKeyCode() == KeyEvent.VK_ENTER) {
 					numberOfTimesSeenPressRelease();
 					numberOfTimesSeenTwitter();
+
+					btnView.setEnabled(true);
 				}
 			}
 		});
@@ -438,6 +441,8 @@ public class AnalyzeNews {
 				new ViewMovementOnGraph(prDate, prMovement);
 			}
 		});
+
+		btnView.setEnabled(false);
 
 		GridBagConstraints gbc_btnView = new GridBagConstraints();
 		gbc_btnView.insets = new Insets(0, 0, 5, 5);
@@ -1198,7 +1203,6 @@ public class AnalyzeNews {
 			numberOfTimesSeenTwitter();
 		}
 	};
-	private JButton btnView;
 
 	public static ArrayList<String> extractMessageLinks(Document doc) {
 		ArrayList<String> messageLinks = new ArrayList<String>();
