@@ -187,6 +187,7 @@ public class MainFrame implements ActionListener, KeyListener {
 		gbl_contentPane.rowHeights = new int[] { 0, 2, 266, 266, 239, 0 };
 		gbl_contentPane.columnWeights = new double[] { 1.0, 1.0, 1.0, 1.0, 1.0, Double.MIN_VALUE };
 		gbl_contentPane.rowWeights = new double[] { 0.0, 0.0, 1.0, 1.0, 1.0, Double.MIN_VALUE };
+
 		contentPane.setLayout(gbl_contentPane);
 
 		btnNews = new JButton("News");
@@ -215,6 +216,7 @@ public class MainFrame implements ActionListener, KeyListener {
 		gbc_dashboardPanel.fill = GridBagConstraints.BOTH;
 		gbc_dashboardPanel.gridx = 4;
 		gbc_dashboardPanel.gridy = 0;
+
 		contentPane.add(dashboardPanel, gbc_dashboardPanel);
 
 		GridBagLayout gbl_dashboardPanel = new GridBagLayout();

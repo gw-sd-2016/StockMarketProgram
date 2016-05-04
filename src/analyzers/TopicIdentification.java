@@ -15,8 +15,6 @@ import com.aliasi.lm.NGramProcessLM;
 import com.aliasi.util.AbstractExternalizable;
 import com.aliasi.util.Files;
 
-import main.MainFrame;
-
 public class TopicIdentification {
 	private static File TRAINING_DIR = new File("trainers/topic.identification");
 	private static File TESTING_DIR = new File("cache");
@@ -40,10 +38,12 @@ public class TopicIdentification {
 			File classDir = new File(TRAINING_DIR, CATEGORIES[i]);
 			if (!classDir.isDirectory()) {
 				String msg = "Doesn't work";
+
 				throw new IllegalArgumentException(msg);
 			}
 
 			String[] trainingFiles = classDir.list();
+
 			for (int j = 0; j < trainingFiles.length; ++j) {
 				File file = new File(classDir, trainingFiles[j]);
 				String text = Files.readFromFile(file, "ISO-8859-1");
@@ -64,6 +64,7 @@ public class TopicIdentification {
 		File classDir = new File(TESTING_DIR, symbol[0]);
 		String[] testingFiles = classDir.list();
 		ArrayList<Double> jointLogProbabilities = new ArrayList<Double>();
+
 		for (int j = 0; j < testingFiles.length; ++j) {
 			String text = Files.readFromFile(new File(classDir, testingFiles[j]), "ISO-8859-1");
 			Classification classification = new Classification(symbol[0]);
@@ -73,6 +74,7 @@ public class TopicIdentification {
 			jointLogProbabilities.add(jc.jointLog2Probability(j));
 
 			PROBABILITIES = new double[jc.size()];
+
 			for (int i = 0; i < jc.size(); i++) {
 				PROBABILITIES[i] = jc.jointLog2Probability(i);
 			}
