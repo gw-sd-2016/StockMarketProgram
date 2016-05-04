@@ -12,7 +12,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
 import javax.swing.border.MatteBorder;
-import main.MainFrame;
 import java.awt.GridBagLayout;
 import java.awt.Image;
 import java.awt.GridBagConstraints;
@@ -68,6 +67,7 @@ public class AboutMenu extends JFrame {
 		int x = (Toolkit.getDefaultToolkit().getScreenSize().width / 2) - this.getWidth() / 2;
 		int y = (Toolkit.getDefaultToolkit().getScreenSize().height / 2) - this.getHeight() / 2;
 		this.setLocation(x, y);
+
 		setDefaultCloseOperation(this.HIDE_ON_CLOSE);
 		setVisible(true);
 		setResizable(false);
